@@ -46,11 +46,11 @@ public class AnimalsTask extends AsyncTask<Void, Void, List<String>> {
     @Override
     protected void onPostExecute(List<String> strings) {
         super.onPostExecute(strings);
-        TextView textView = view.findViewById(R.id.text1);
-        String tmp = "";
-        for (String animal : strings) {
-            tmp += animal + ", ";
-        }
-        textView.setText(tmp);
+//        TextView textView = view.findViewById(R.id.text1);
+//        String tmp = "";
+//        for (String animal : strings) {
+//            tmp += animal + ", ";
+//        }
+//        textView.setText(tmp);
     }
 }

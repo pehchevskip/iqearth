@@ -48,11 +48,11 @@ public class CountryTask extends AsyncTask<Void, Void, List<Country>> {
     @Override
     protected void onPostExecute(List<Country> countries) {
         super.onPostExecute(countries);
-        TextView textView = view.findViewById(R.id.text1);
-        String tmp = "";
-        for (Country country : countries) {
-            tmp += country.name + ", ";
-        }
-        textView.setText(tmp);
+//        TextView textView = view.findViewById(R.id.text1);
+//        String tmp = "";
+//        for (Country country : countries) {
+//            tmp += country.name + ", ";
+//        }
+//        textView.setText(tmp);
     }
 }
