@@ -42,6 +42,13 @@ public class StartActivity extends AppCompatActivity {
 
             }
         });
+        mButtonJoinGame.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent join_game=new Intent(StartActivity.this,JoinGame.class);
+                startActivity(join_game);
+            }
+        });
 
     }
 
