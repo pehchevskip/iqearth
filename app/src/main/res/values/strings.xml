@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">iqearth</string>
+    <string name="title_activity_tmp">tmpActivity</string>
+    <string name="tab_text_1">Countries</string>
+    <string name="tab_text_2">Animals</string>
+    <string name="tab_text_3">Mountains</string>
+    <string name="action_settings">Settings</string>
+    <string name="section_format">Hello World from section: %1$d</string>
 </resources>
