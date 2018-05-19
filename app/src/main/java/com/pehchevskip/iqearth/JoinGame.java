@@ -1,5 +1,6 @@
 package com.pehchevskip.iqearth;
 
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
 import android.content.BroadcastReceiver;
@@ -16,12 +17,16 @@ public class JoinGame extends BluetoothActivity  {
 
     //Debugging
     private static String TAG="JoinGame";
+
+
+    private static int REQUEST_ENABLE_BT=2;
+    BluetoothAdapter mBluetoothAdapter;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_join_game);
-        setTimeDiscoverable(com.pehchevskip.iqearth.bluetooth.manager.BluetoothManager.BLUETOOTH_TIME_DICOVERY_120_SEC);
-        selectClientMode();
+
+        mBluetoothAdapter=BluetoothAdapter.getDefaultAdapter();
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         registerReceiver(mReceiver, filter);
     }
@@ -37,6 +42,32 @@ public class JoinGame extends BluetoothActivity  {
             }
         }
     };
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode==REQUEST_ENABLE_BT){
+            if (resultCode==RESULT_OK){
+                checkDiscovery();
+            }
+        }
+    }
+    private void checkDiscovery(){
+        Intent discoverableIntent =
+                new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+        discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
+        startActivity(discoverableIntent);
+        setTimeDiscoverable(com.pehchevskip.iqearth.bluetooth.manager.BluetoothManager.BLUETOOTH_TIME_DICOVERY_300_SEC);
+        selectClientMode();
+    }
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if(!mBluetoothAdapter.isEnabled()){
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+        }
+    }
 
     @Override
     protected void onDestroy() {
