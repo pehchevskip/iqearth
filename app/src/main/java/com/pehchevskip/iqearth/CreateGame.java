@@ -3,7 +3,9 @@ package com.pehchevskip.iqearth;
 import android.Manifest;
 import android.app.DialogFragment;
 import android.app.FragmentManager;
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
@@ -51,6 +53,10 @@ public class CreateGame extends BluetoothActivity implements DiscoveredDialogFra
         mBluetoothManager = new BluetoothManager(this);
         setMessageMode(BluetoothManager.MessageMode.String);
         showDiscoveredDevicesDialog();
+        Intent discoverableIntent =
+                new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+        discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
+        startActivity(discoverableIntent);
     }
 
     public void serverCreated(String adress) {
