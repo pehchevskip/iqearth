@@ -53,6 +53,7 @@ public class tmpActivity extends AppCompatActivity {
     private static List<String> possibleMountains = new ArrayList<>();
 
     private static Player player = new Player("Petar");
+    
 
     /**
      * The {@link ViewPager} that will host the section contents.
