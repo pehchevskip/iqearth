@@ -9,6 +9,7 @@ import android.widget.EditText;
 
 public class EnterNickname extends AppCompatActivity {
 
+    private final static String NICKNAME="nickname";
     //Views
     EditText mEditTextnickname;
     Button mButtonSumbit;
@@ -28,8 +29,8 @@ public class EnterNickname extends AppCompatActivity {
                     nickname=mEditTextnickname.getText().toString();
                     Intent start_activity;
                     start_activity = new Intent(EnterNickname.this,StartActivity.class);
-                    start_activity.putExtra("nickname",nickname);
-                    startActivityForResult(start_activity,1);
+                    start_activity.putExtra(NICKNAME,nickname);
+                    startActivity(start_activity);
 
 
                 }

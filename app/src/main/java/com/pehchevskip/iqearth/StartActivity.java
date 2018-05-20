@@ -14,6 +14,7 @@ public class StartActivity extends AppCompatActivity {
 
     //Debugging
     private static String TAG="StartActvity";
+    private final static String NICKNAME="nickname";
     private static boolean D=true;
 
     private static int REQUEST_ENABLE_BT = 2;
@@ -34,10 +35,12 @@ public class StartActivity extends AppCompatActivity {
         mButtonCreateGame = (Button) findViewById(R.id.create_game);
         mButtonJoinGame = (Button) findViewById(R.id.join_game);
         mTextViewNickname = (TextView) findViewById(R.id.nicname);
+        String nickname=getIntent().getStringExtra(NICKNAME);
+        mTextViewNickname.setText(nickname);
         mButtonCreateGame.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-        Intent createGame = new Intent(StartActivity.this, CreateGame.class);
+        Intent createGame = new Intent(StartActivity.this, BluetoothGameActivity.class);
         startActivity(createGame);
 
             }
@@ -45,7 +48,7 @@ public class StartActivity extends AppCompatActivity {
         mButtonJoinGame.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent join_game=new Intent(StartActivity.this,JoinGame.class);
+                Intent join_game=new Intent(StartActivity.this,BluetoothGameActivity.class);
                 startActivity(join_game);
             }
         });
