@@ -4,6 +4,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
+import android.content.Intent;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
@@ -16,6 +17,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import com.pehchevskip.iqearth.bluetooth.BluetoothControler;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,48 +45,59 @@ public class BluetoothGameActivity extends AppCompatActivity {
     static final int STATE_CONNECTED=3;
     static final int STATE_CONNECTION_FAILED=4;
     static final int STATE_MESSAGE_RECEIVED=5;
+    static final int STARTED_GAME=6;
     //views
     TextView status,roleTv,msg;
     EditText editText;
-    Button send;
+    Button send,start_game;
     ListView mGAmes;
     //
     public BluetoothAdapter mBluetoothAdapter;
     private ArrayList<String> mGames;
     private ArrayList<BluetoothDevice> bdList;
+    //role
+    public String role;
+    //Bluetooth Contorler
+    BluetoothControler controler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bluetooth_game);
-        String role=getIntent().getStringExtra(ROLE_TAG);
+        //get role from start activity
+        role=getIntent().getStringExtra(ROLE_TAG);
         //connect with views
         status=(TextView)findViewById(R.id.status);
         roleTv=(TextView)findViewById(R.id.role);
-        editText=(EditText)findViewById(R.id.edit_text);
-        send=(Button)findViewById(R.id.send);
+
         mGAmes=(ListView)findViewById(R.id.list_games);
         msg=(TextView)findViewById(R.id.msg);
+        start_game=(Button)findViewById(R.id.start_game);
         //initialing adapter
         mBluetoothAdapter=BluetoothAdapter.getDefaultAdapter();
         bdList=new ArrayList<>();
         mGames=new ArrayList<>();
-
+        controler=BluetoothControler.getInstance();
+        controler.setHandler(handler);
         if(role.equals(CLIENT)){
             roleTv.setText(CLIENT);
+
             Set<BluetoothDevice> bd=mBluetoothAdapter.getBondedDevices();
 
             for(BluetoothDevice bdd:bd){
+
                 bdList.add(bdd);
                 mGames.add(bdd.getName());
+
             }
 
         }
         if(role.equals(SERVER))
         {
+
             roleTv.setText(SERVER);
-            InnerServerClass serverClass=new InnerServerClass();
-            serverClass.start();
+            controler.serverClass=new BluetoothControler.InnerServerClass();
+            controler.serverClass.start();
         }
 
         ArrayAdapter<String> adapter=new ArrayAdapter<>(BluetoothGameActivity.this,android.R.layout.simple_list_item_1,mGames);
@@ -91,16 +105,27 @@ public class BluetoothGameActivity extends AppCompatActivity {
         mGAmes.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                InnerClientClass clientClass=new InnerClientClass(bdList.get(i));
-                clientClass.start();
+                controler.clientClass=new BluetoothControler.InnerClientClass(bdList.get(i));
+                controler.clientClass.start();
             }
         });
-
-        send.setOnClickListener(new View.OnClickListener() {
+//
+//        send.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                String reply=String.valueOf(editText.getText());
+//                controler.sendReceive.write(reply.getBytes());
+//            }
+//        });
+        start_game.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String reply=String.valueOf(editText.getText());
-                sendReceive.write(reply.getBytes());
+                Intent startGame=new Intent(BluetoothGameActivity.this,tmpActivity.class);
+                startGame.putExtra(ROLE_TAG,role);
+                startActivity(startGame);
+                Message msg=Message.obtain();
+                msg.what=STARTED_GAME;
+                handler.sendMessage(msg);
             }
         });
 
@@ -117,6 +142,8 @@ public class BluetoothGameActivity extends AppCompatActivity {
                     break;
                 case STATE_CONNECTED:
                     status.setText("Connected");
+                    start_game.setVisibility(View.VISIBLE);
+
                     break;
                 case STATE_CONNECTION_FAILED:
                     status.setText("Connection Failed");
@@ -127,6 +154,10 @@ public class BluetoothGameActivity extends AppCompatActivity {
                     msg.setText(tempMsg);
 
                     break;
+                case STARTED_GAME:
+                   Log.d(TAG,"Started GAme");
+
+
             }
             return true;
 

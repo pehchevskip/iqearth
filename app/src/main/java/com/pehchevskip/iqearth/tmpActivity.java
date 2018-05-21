@@ -3,28 +3,31 @@ package com.pehchevskip.iqearth;
 import android.annotation.SuppressLint;
 import android.arch.persistence.room.Room;
 import android.os.AsyncTask;
-import android.support.design.widget.TabLayout;
+import android.os.Bundle;
+import android.os.CountDownTimer;
+import android.os.Handler;
+import android.os.Message;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.pehchevskip.iqearth.bluetooth.BluetoothControler;
 import com.pehchevskip.iqearth.model.Player;
 import com.pehchevskip.iqearth.persistance.AppDatabase;
 import com.pehchevskip.iqearth.persistance.entities.EntityAnimal;
@@ -32,7 +35,6 @@ import com.pehchevskip.iqearth.persistance.entities.EntityCountry;
 import com.pehchevskip.iqearth.persistance.entities.EntityMountain;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -52,13 +54,28 @@ public class tmpActivity extends AppCompatActivity {
     private static List<String> possibleAnimals = new ArrayList<>();
     private static List<String> possibleMountains = new ArrayList<>();
 
-    private static Player player = new Player("Petar");
-    
-
+    private static Player player ;
+    private static Player opponent;
+    //connection state
+    static final int STATE_LISTENING=1;
+    static final int STATE_CONNECTING=2;
+    static final int STATE_CONNECTED=3;
+    static final int STATE_CONNECTION_FAILED=4;
+    static final int STATE_MESSAGE_RECEIVED=5;
+    static final int STARTED_GAME=6;
+    //role tag
+    private static final String ROLE_TAG="role";
+    private static final String CLIENT="client";
+    private static final String SERVER="server";
+    CountDownTimer timer;
     /**
      * The {@link ViewPager} that will host the section contents.
      */
     private ViewPager mViewPager;
+    //Views
+    TextView remaining_time,my_score,opp_score;
+
+    static BluetoothControler controler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,7 +83,7 @@ public class tmpActivity extends AppCompatActivity {
         setContentView(R.layout.activity_tmp);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+//        setSupportActionBar(toolbar);
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
@@ -74,8 +91,13 @@ public class tmpActivity extends AppCompatActivity {
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
-
+        //controler
+        controler=BluetoothControler.getInstance();
+        controler.setHandler(handler);
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
+        my_score=(TextView)findViewById(R.id.myscore);
+        opp_score=(TextView)findViewById(R.id.opp_score);
+        remaining_time=(TextView)findViewById(R.id.time_remaining);
 
         mViewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
         tabLayout.addOnTabSelectedListener(new TabLayout.ViewPagerOnTabSelectedListener(mViewPager));
@@ -94,6 +116,69 @@ public class tmpActivity extends AppCompatActivity {
         getCountriesFromDb();
         getAnimalsFromDb();
         getMountainsFromDb();
+
+        //start timer
+        startTimer();
+
+        //initiliazing players
+        String role=getIntent().getStringExtra(ROLE_TAG);
+        if(role.equals(CLIENT)){
+            opponent=new Player("opp");
+        }
+        if(role.equals(SERVER)){
+            player=new Player("player");
+        }
+
+    }
+    Handler handler = new Handler(new Handler.Callback() {
+        @Override
+        public boolean handleMessage(Message message) {
+            switch (message.what){
+                case STATE_LISTENING:
+                    Log.d("handler","connecting");
+                    break;
+                case STATE_CONNECTING:
+                    //status.setText("Connecting");
+                    break;
+                case STATE_CONNECTED:
+                    //status.setText("Connected");
+                    //start_game.setVisibility(View.VISIBLE);
+
+                    break;
+                case STATE_CONNECTION_FAILED:
+                    //status.setText("Connection Failed");
+                    break;
+                case STATE_MESSAGE_RECEIVED:
+                    byte[] readBuff=(byte[])message.obj;
+                    String tempMsg=new String(readBuff,0,message.arg1);
+                    opp_score.setText(tempMsg);
+                    Log.d("enter",tempMsg);
+
+                    break;
+                case STARTED_GAME:
+                    Log.d("Handler","Started GAme");
+
+
+            }
+            return true;
+
+
+        }
+    });
+    private void startTimer(){
+        timer=new CountDownTimer(300000,1000) {
+            @Override
+            public void onTick(long l) {
+                remaining_time.setText("Seconds Remaining"+l/1000);
+                Log.d("TIMER",""+l/1000.);
+            }
+
+            @Override
+            public void onFinish() {
+                remaining_time.setText("Game Finished");
+                Log.d("TIMER","DONE");
+            }
+        }.start();
     }
 
     @SuppressLint("StaticFieldLeak")
@@ -193,6 +278,7 @@ public class tmpActivity extends AppCompatActivity {
             return fragment;
         }
 
+
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
@@ -208,6 +294,7 @@ public class tmpActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View view) {
                     String answer = editText.getText().toString().toLowerCase();
+                    controler.sendReceive.write(answer.getBytes());
                     switch (sectionNumber) {
                         case 1:
                             if(possibleCountries.contains(answer)) {
@@ -217,6 +304,7 @@ public class tmpActivity extends AppCompatActivity {
                             }
                             else
                                 Toast.makeText(rootView.getContext(), "Incorrect", Toast.LENGTH_SHORT).show();
+
                             break;
                         case 2:
                             if(possibleAnimals.contains(answer)) {
@@ -226,6 +314,7 @@ public class tmpActivity extends AppCompatActivity {
                             }
                             else
                                 Toast.makeText(rootView.getContext(), "Incorrect", Toast.LENGTH_SHORT).show();
+
                             break;
                         case 3:
                             if(possibleMountains.contains(answer)) {
@@ -235,6 +324,7 @@ public class tmpActivity extends AppCompatActivity {
                             }
                             else
                                 Toast.makeText(rootView.getContext(), "Incorrect", Toast.LENGTH_SHORT).show();
+
                             break;
                     }
                 }
