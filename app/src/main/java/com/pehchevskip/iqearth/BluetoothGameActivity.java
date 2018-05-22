@@ -19,6 +19,9 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.pehchevskip.iqearth.bluetooth.BluetoothControler;
+import com.pehchevskip.iqearth.controlers.GameControler;
+import com.pehchevskip.iqearth.model.Game;
+import com.pehchevskip.iqearth.model.Player;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,8 +36,7 @@ public class BluetoothGameActivity extends AppCompatActivity {
     private static final String CLIENT="client";
     private static final String SERVER="server";
     private static final String TAG ="BLUETOTOOFAME" ;
-    //send receive
-    InnerSendReceive sendReceive;
+
 
     //connection info
     private static final String APP_NAME="iqearth";
@@ -59,6 +61,13 @@ public class BluetoothGameActivity extends AppCompatActivity {
     public String role;
     //Bluetooth Contorler
     BluetoothControler controler;
+    //Game Controler
+    GameControler gameControler;
+    //Game
+    Game game;
+    Player player;
+    Player opponent;
+    String nickname;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,7 +78,7 @@ public class BluetoothGameActivity extends AppCompatActivity {
         //connect with views
         status=(TextView)findViewById(R.id.status);
         roleTv=(TextView)findViewById(R.id.role);
-
+        gameControler=GameControler.getInstance();
         mGAmes=(ListView)findViewById(R.id.list_games);
         msg=(TextView)findViewById(R.id.msg);
         start_game=(Button)findViewById(R.id.start_game);
@@ -77,11 +86,13 @@ public class BluetoothGameActivity extends AppCompatActivity {
         mBluetoothAdapter=BluetoothAdapter.getDefaultAdapter();
         bdList=new ArrayList<>();
         mGames=new ArrayList<>();
+        nickname=getIntent().getStringExtra("nickname");
         controler=BluetoothControler.getInstance();
         controler.setHandler(handler);
         if(role.equals(CLIENT)){
             roleTv.setText(CLIENT);
-
+            player=new Player(nickname);
+            gameControler.addPlayer(player);
             Set<BluetoothDevice> bd=mBluetoothAdapter.getBondedDevices();
 
             for(BluetoothDevice bdd:bd){
@@ -96,6 +107,8 @@ public class BluetoothGameActivity extends AppCompatActivity {
         {
 
             roleTv.setText(SERVER);
+            player=new Player(nickname);
+            gameControler.addPlayer(player);
             controler.serverClass=new BluetoothControler.InnerServerClass();
             controler.serverClass.start();
         }
@@ -109,19 +122,14 @@ public class BluetoothGameActivity extends AppCompatActivity {
                 controler.clientClass.start();
             }
         });
-//
-//        send.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                String reply=String.valueOf(editText.getText());
-//                controler.sendReceive.write(reply.getBytes());
-//            }
-//        });
+
         start_game.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent startGame=new Intent(BluetoothGameActivity.this,tmpActivity.class);
                 startGame.putExtra(ROLE_TAG,role);
+                controler.sendReceive.write(nickname.getBytes());
+
                 startActivity(startGame);
                 Message msg=Message.obtain();
                 msg.what=STARTED_GAME;
@@ -150,12 +158,16 @@ public class BluetoothGameActivity extends AppCompatActivity {
                     break;
                 case STATE_MESSAGE_RECEIVED:
                     byte[] readBuff=(byte[])message.obj;
-                    String tempMsg=new String(readBuff,0,message.arg1);
-                    msg.setText(tempMsg);
+                    String playerName=new String(readBuff,0,message.arg1);
+                    opponent=new Player(playerName);
+                    gameControler.addPlayer(opponent);
+
 
                     break;
                 case STARTED_GAME:
                    Log.d(TAG,"Started GAme");
+                   game=new Game(60000,gameControler.getPlayers(),'M');
+                   gameControler.setGame(game);
 
 
             }
@@ -164,130 +176,5 @@ public class BluetoothGameActivity extends AppCompatActivity {
 
         }
     });
-    private class InnerServerClass extends Thread{
-        private BluetoothServerSocket mServerSocket;
-        public InnerServerClass(){
-            try{
-                mServerSocket=mBluetoothAdapter.listenUsingRfcommWithServiceRecord(APP_NAME,myUuid);
-            }catch (IOException e)
-            {
-                Log.d(TAG,"Failer server socket",e);
-            }
 
-
-        }
-
-        @Override
-        public void run() {
-
-            BluetoothSocket socket=null;
-            while(socket==null) {
-                {
-                    try{
-                        Message message=Message.obtain();
-                        message.what=STATE_CONNECTING;
-                        handler.sendMessage(message);
-                        socket=mServerSocket.accept();
-                    }
-                    catch (IOException e)
-                    {
-                        Log.d(TAG,"server connection faled",e);
-                        Message message=Message.obtain();
-                        message.what=STATE_CONNECTION_FAILED;
-                        handler.sendMessage(message);
-                        break;
-                    }
-                    if(socket!=null){
-                        Message message=Message.obtain();
-                        message.what=STATE_CONNECTED;
-                        handler.sendMessage(message);
-                        //send receive
-                        sendReceive=new InnerSendReceive(socket);
-                        sendReceive.start();
-                        break;
-                    }
-                }
-            }
-        }
-    }
-    private class InnerClientClass extends Thread{
-        private BluetoothSocket socket;
-        private BluetoothDevice device;
-
-        public InnerClientClass(BluetoothDevice device1){
-            this.device=device1;
-
-            try{
-                socket=device.createRfcommSocketToServiceRecord(myUuid);
-            }catch (IOException e){
-                Log.d(TAG,"Failed in client class",e);
-            }
-
-        }
-
-        @Override
-        public void run() {
-
-            mBluetoothAdapter.cancelDiscovery();
-            try{
-                socket.connect();
-                Message msg=Message.obtain();
-                msg.what=STATE_CONNECTED;
-                handler.sendMessage(msg);
-                sendReceive=new InnerSendReceive(socket);
-                sendReceive.start();
-            }catch (IOException e){
-                Log.d(TAG,"Coudnt connect() in client thread",e);
-                Message msg=Message.obtain();
-                msg.what=STATE_CONNECTION_FAILED;
-                handler.sendMessage(msg);
-            }
-        }
-    }
-    private class InnerSendReceive extends Thread{
-        private final BluetoothSocket socket;
-        private final InputStream inputStream;
-        private final OutputStream outputStream;
-
-
-        public InnerSendReceive(BluetoothSocket socket){
-            this.socket=socket;
-
-            InputStream tempIn=null;
-            OutputStream tempOut=null;
-            try {
-                tempIn = socket.getInputStream();
-                tempOut = socket.getOutputStream();
-            }catch (IOException e)
-            {
-
-            }
-            inputStream=tempIn;
-            outputStream=tempOut;
-
-        }
-
-        @Override
-        public void run() {
-
-            byte[] buffer=new byte[1024];
-            int bytes;
-            while(true){
-                try {
-                    bytes=inputStream.read(buffer);
-                    handler.obtainMessage(STATE_MESSAGE_RECEIVED,bytes,-1,buffer).sendToTarget();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
-        }
-        public void write(byte[] bytes){
-            try {
-                outputStream.write(bytes);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
 }

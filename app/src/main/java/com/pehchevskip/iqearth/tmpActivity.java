@@ -2,6 +2,7 @@ package com.pehchevskip.iqearth;
 
 import android.annotation.SuppressLint;
 import android.arch.persistence.room.Room;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -28,6 +29,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.pehchevskip.iqearth.bluetooth.BluetoothControler;
+import com.pehchevskip.iqearth.controlers.GameControler;
+import com.pehchevskip.iqearth.model.Game;
 import com.pehchevskip.iqearth.model.Player;
 import com.pehchevskip.iqearth.persistance.AppDatabase;
 import com.pehchevskip.iqearth.persistance.entities.EntityAnimal;
@@ -56,6 +59,8 @@ public class tmpActivity extends AppCompatActivity {
 
     private static Player player ;
     private static Player opponent;
+    private static Game game;
+    static GameControler gameControler;
     //connection state
     static final int STATE_LISTENING=1;
     static final int STATE_CONNECTING=2;
@@ -63,15 +68,21 @@ public class tmpActivity extends AppCompatActivity {
     static final int STATE_CONNECTION_FAILED=4;
     static final int STATE_MESSAGE_RECEIVED=5;
     static final int STARTED_GAME=6;
+    static final int ANSWERED_QUESTION=7;
     //role tag
     private static final String ROLE_TAG="role";
     private static final String CLIENT="client";
     private static final String SERVER="server";
+    String role;
+    //timer
     CountDownTimer timer;
+
+
     /**
      * The {@link ViewPager} that will host the section contents.
      */
     private ViewPager mViewPager;
+
     //Views
     TextView remaining_time,my_score,opp_score;
 
@@ -98,7 +109,11 @@ public class tmpActivity extends AppCompatActivity {
         my_score=(TextView)findViewById(R.id.myscore);
         opp_score=(TextView)findViewById(R.id.opp_score);
         remaining_time=(TextView)findViewById(R.id.time_remaining);
-
+        //connecting with game controler
+        gameControler=GameControler.getInstance();
+        game=gameControler.getGame();
+        player=gameControler.getCurrentPlayer();
+        opponent=gameControler.getPlayers().get(0);
         mViewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
         tabLayout.addOnTabSelectedListener(new TabLayout.ViewPagerOnTabSelectedListener(mViewPager));
 
@@ -119,18 +134,11 @@ public class tmpActivity extends AppCompatActivity {
 
         //start timer
         startTimer();
+        role=getIntent().getStringExtra(ROLE_TAG);
 
-        //initiliazing players
-        String role=getIntent().getStringExtra(ROLE_TAG);
-        if(role.equals(CLIENT)){
-            opponent=new Player("opp");
-        }
-        if(role.equals(SERVER)){
-            player=new Player("player");
-        }
 
     }
-    Handler handler = new Handler(new Handler.Callback() {
+    static Handler handler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message message) {
             switch (message.what){
@@ -151,12 +159,17 @@ public class tmpActivity extends AppCompatActivity {
                 case STATE_MESSAGE_RECEIVED:
                     byte[] readBuff=(byte[])message.obj;
                     String tempMsg=new String(readBuff,0,message.arg1);
-                    opp_score.setText(tempMsg);
+                    increaseScore(opponent);
                     Log.d("enter",tempMsg);
+
+
 
                     break;
                 case STARTED_GAME:
                     Log.d("Handler","Started GAme");
+                case ANSWERED_QUESTION:
+                    controler.sendReceive.write((String.valueOf(player.getScore()).getBytes()));
+
 
 
             }
@@ -165,8 +178,12 @@ public class tmpActivity extends AppCompatActivity {
 
         }
     });
+    private static void increaseScore(Player p)
+    {
+       gameControler.increaseScore(p,1);
+    }
     private void startTimer(){
-        timer=new CountDownTimer(300000,1000) {
+        timer=new CountDownTimer(gameControler.getGame().getTime(),1000) {
             @Override
             public void onTick(long l) {
                 remaining_time.setText("Seconds Remaining"+l/1000);
@@ -177,6 +194,11 @@ public class tmpActivity extends AppCompatActivity {
             public void onFinish() {
                 remaining_time.setText("Game Finished");
                 Log.d("TIMER","DONE");
+                Intent finishedGame=new Intent(tmpActivity.this,finishedGameActivity.class);
+                GameControler.GameStatus gameStatus=gameControler.getResults();
+                Log.d("GameStatus", String.valueOf(gameStatus));
+                finishedGame.putExtra("GAMESTATUS",gameStatus);
+                startActivity(finishedGame);
             }
         }.start();
     }
@@ -278,7 +300,11 @@ public class tmpActivity extends AppCompatActivity {
             return fragment;
         }
 
-
+        public static void answeredQuestion(){
+            Message msg=Message.obtain();
+            msg.what=ANSWERED_QUESTION;
+            handler.sendMessage(msg);
+        }
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
@@ -300,6 +326,9 @@ public class tmpActivity extends AppCompatActivity {
                             if(possibleCountries.contains(answer)) {
                                 Toast.makeText(rootView.getContext(), "Correct", Toast.LENGTH_SHORT).show();
                                 player.getAnswers("countries").add(answer);
+                                increaseScore(player);
+                                Log.d("Score",String.valueOf(player.getScore()));
+                                answeredQuestion();
                                 updateTextView(player.getAnswers("countries"), textView);
                             }
                             else
@@ -310,6 +339,8 @@ public class tmpActivity extends AppCompatActivity {
                             if(possibleAnimals.contains(answer)) {
                                 Toast.makeText(rootView.getContext(), "Correct", Toast.LENGTH_SHORT).show();
                                 player.getAnswers("animals").add(answer);
+                                increaseScore(player);
+                                answeredQuestion();
                                 updateTextView(player.getAnswers("animals"), textView);
                             }
                             else
@@ -320,6 +351,8 @@ public class tmpActivity extends AppCompatActivity {
                             if(possibleMountains.contains(answer)) {
                                 Toast.makeText(rootView.getContext(), "Correct", Toast.LENGTH_SHORT).show();
                                 player.getAnswers("mountains").add(answer);
+                                increaseScore(player);
+                                answeredQuestion();
                                 updateTextView(player.getAnswers("mountains"), textView);
                             }
                             else

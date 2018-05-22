@@ -14,16 +14,17 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-    <activity android:name=".EnterNickname">
-        <intent-filter>
-            <action android:name="android.intent.action.MAIN" />
+        <activity android:name=".EnterNickname">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
 
-            <category android:name="android.intent.category.LAUNCHER" />
-        </intent-filter>
-    </activity>
-    <activity android:name=".StartActivity" />
-        <activity android:name=".BluetoothGameActivity"/>
-        <activity android:name=".tmpActivity"/>
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".StartActivity" />
+        <activity android:name=".BluetoothGameActivity" />
+        <activity android:name=".tmpActivity" />
+        <activity android:name=".finishedGameActivity"></activity>
     </application>
 
 </manifest>
