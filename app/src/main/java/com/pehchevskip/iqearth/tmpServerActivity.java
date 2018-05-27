@@ -1,12 +1,19 @@
 package com.pehchevskip.iqearth;
 
+import android.annotation.SuppressLint;
+import android.os.AsyncTask;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 
 import com.pehchevskip.iqearth.model.Game;
 import com.pehchevskip.iqearth.model.Player;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -15,11 +22,14 @@ import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.List;
 
 public class tmpServerActivity extends AppCompatActivity {
 
-    TextView info, infoip, msg;
+    TextView infoip, msg;
+    Button replyButton;
     String message = "";
     ServerSocket serverSocket;
 
@@ -31,11 +41,10 @@ public class tmpServerActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tmp_server);
 
-        info = findViewById(R.id.infoTv);
         infoip = findViewById(R.id.infoipTv);
         msg = findViewById(R.id.msgTv);
-
-        infoip.setText(getIpAddress());
+        replyButton = findViewById(R.id.replyBt);
+//        replyButton.setOnClickListener(onClickListenerForReplyBt);
 
         Thread socketServerThread = new Thread(new SocketServerThread());
         socketServerThread.start();
@@ -60,77 +69,82 @@ public class tmpServerActivity extends AppCompatActivity {
 
         @Override
         public void run() {
+            Socket socket = null;
+            DataInputStream dataInputStream = null;
+            DataOutputStream dataOutputStream = null;
             try {
                 serverSocket = new ServerSocket(SocketServerPORT);
                 tmpServerActivity.this.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        info.setText("Waiting on: " + serverSocket.getLocalPort());
+                        infoip.setText("Waiting on: " + getIpAddress() + ':' + serverSocket.getLocalPort());
                     }
                 });
 
                 while (true) {
-                    Socket socket = serverSocket.accept();
+                    socket = serverSocket.accept();
+                    dataInputStream = new DataInputStream(socket.getInputStream());
+                    dataOutputStream = new DataOutputStream(socket.getOutputStream());
+                    String messageFromClient = "";
+                    messageFromClient = dataInputStream.readUTF();
                     count++;
-                    message += "#" + count + " from " + socket.getInetAddress() + ":" + socket.getPort() + "\n";
+                    message += "#" + count + " from " + socket.getInetAddress() + ":" + socket.getPort() + "\n"
+                            + messageFromClient + '\n';
                     tmpServerActivity.this.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             msg.setText(message);
                         }
                     });
-
-                    SocketServerReplyThread socketServerReplyThread = new SocketServerReplyThread(socket, count);
-                    socketServerReplyThread.run();
+                    String replyMsg = "hi from server #" + count;
+                    dataOutputStream.writeUTF(replyMsg);
                 }
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 e.printStackTrace();
-            }
-        }
-    }
-
-    private class SocketServerReplyThread extends Thread {
-
-        private Socket hostThreadSocket;
-        int cnt;
-
-        SocketServerReplyThread(Socket socket, int c) {
-            hostThreadSocket = socket;
-            cnt = c;
-        }
-
-        @Override
-        public void run() {
-            OutputStream outputStream;
-            final String msgReply = "Hello bobec, you are #" + cnt;
-
-            try {
-                outputStream = hostThreadSocket.getOutputStream();
-                PrintStream printStream = new PrintStream(outputStream);
-                printStream.println(msgReply);
-                printStream.close();
-
-                message += "replayed: " + msgReply + "\n";
-
                 tmpServerActivity.this.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        msg.setText(message);
+                        msg.setText(e.toString());
                     }
                 });
-            } catch (IOException e) {
-                e.printStackTrace();
-                message += "Something went wrong!" + e.toString() + "\n";
-            }
-
-            tmpServerActivity.this.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    msg.setText(message);
+            } finally {
+                if(socket != null) {
+                    try {
+                        socket.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
-            });
+                if(dataInputStream != null) {
+                    try {
+                        dataInputStream.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                if(dataOutputStream != null) {
+                    try {
+                        dataOutputStream.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
         }
     }
+
+    /*View.OnClickListener onClickListenerForReplyBt = new View.OnClickListener() {
+        @SuppressLint("StaticFieldLeak") @Override
+        public void onClick(View view) {
+            new AsyncTask<Void, Void, Void>() {
+                @Override
+                protected Void doInBackground(Void... voids) {
+                    socketServerReplyThread.run();
+                    return null;
+                }
+            }.execute();
+        }
+    };*/
 
     private String getIpAddress() {
         String ip = "";

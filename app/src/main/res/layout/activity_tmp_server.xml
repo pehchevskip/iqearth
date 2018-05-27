@@ -7,6 +7,12 @@
     android:orientation="vertical"
     tools:context="com.pehchevskip.iqearth.tmpServerActivity">
 
+    <Button
+        android:id="@+id/replyBt"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Reply" />
+
     <TextView
         android:id="@+id/infoTv"
         android:layout_width="match_parent"

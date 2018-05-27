@@ -12,13 +12,19 @@
         android:id="@+id/addressEt"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="dstAddress" />
+        android:hint="IP" />
 
     <EditText
         android:id="@+id/portEt"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="dstPort" />
+        android:hint="Port" />
+
+    <EditText
+        android:id="@+id/msgForServerEt"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Message for server..." />
 
     <Button
         android:id="@+id/connectBt"
