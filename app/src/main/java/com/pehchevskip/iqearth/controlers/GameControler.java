@@ -13,10 +13,6 @@ public class GameControler {
     private static GameStatus gameStatus;
     private static Player currentPlayer;
 
-    public Player getCurrentPlayer() {
-        return currentPlayer;
-    }
-
     public GameStatus getGameStatus() {
         return gameStatus;
     }
@@ -38,9 +34,6 @@ public class GameControler {
 
     }
     public void increaseScore(Player p,int score){
-        if (p==currentPlayer){
-            currentPlayer.setScore(1);
-        }
         for(Player pl :players){
             if(pl==p){
                 pl.setScore(score);
@@ -48,20 +41,22 @@ public class GameControler {
         }
 
     }
-    public void setCurrentPlayer(Player p){
-        currentPlayer=p;
-    }
+
 
     public GameStatus getResults()
     {
         Player bestPlayer=findBestPlayer();
+        currentPlayer=players.get(0);
         if(currentPlayer.getScore()>bestPlayer.getScore()){
             currentPlayer.setGameStatus(GameStatus.WIN);
         }
         else if(currentPlayer.getScore()<bestPlayer.getScore()){
             currentPlayer.setGameStatus(GameStatus.LOSS);
         }
-        else{
+        else if(currentPlayer.getScore()==bestPlayer.getScore()&&currentPlayer.getNickname().equals(bestPlayer.getNickname())){
+            currentPlayer.setGameStatus(GameStatus.WIN);
+        }
+        else if(currentPlayer.getScore()==bestPlayer.getScore()&&!(currentPlayer.getNickname().equals(bestPlayer.getNickname()))){
             currentPlayer.setGameStatus(GameStatus.DRAW);
         }
         gameStatus=currentPlayer.getGameStatus();
@@ -69,7 +64,9 @@ public class GameControler {
 
     }
     private Player findBestPlayer(){
-        Player maxPlayer=players.get(0);
+        Player maxPlayer=null;
+        if(players.size()!=0){
+        maxPlayer=players.get(0);}
 
         for(Player p:players){
             if(p.getScore()>maxPlayer.getScore()){

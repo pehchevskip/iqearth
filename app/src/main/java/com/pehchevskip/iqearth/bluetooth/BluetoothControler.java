@@ -1,4 +1,4 @@
-package com.pehchevskip.iqearth.bluetooth;
+    package com.pehchevskip.iqearth.bluetooth;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -58,7 +58,6 @@ public class BluetoothControler {
 
 
         }
-
         @Override
         public void run() {
 
@@ -172,6 +171,11 @@ public class BluetoothControler {
                     handler.obtainMessage(STATE_MESSAGE_RECEIVED,bytes,-1,buffer).sendToTarget();
                 } catch (IOException e) {
                     e.printStackTrace();
+                    try {
+                        inputStream.close();
+                    } catch (IOException e1) {
+                        e1.printStackTrace();
+                    }
                 }
             }
 
@@ -181,8 +185,24 @@ public class BluetoothControler {
                 outputStream.write(bytes);
             } catch (IOException e) {
                 e.printStackTrace();
+                try {
+                    outputStream.close();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
             }
         }
+        public void cancel(){
+            try{
+                socket.close();
+            }catch (IOException eo)
+            {
+                Log.i("Closing send receiive",eo.getMessage());
+
+            }
+        }
+
     }
+
 }
 

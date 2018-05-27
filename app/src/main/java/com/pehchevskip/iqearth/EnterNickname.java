@@ -58,7 +58,7 @@ public class EnterNickname extends AppCompatActivity {
                     start_activity = new Intent(EnterNickname.this,StartActivity.class);
                     start_activity.putExtra(NICKNAME,nickname);
                     player=new Player(nickname);
-                    gameControler.setCurrentPlayer(player);
+                    gameControler.addPlayer(player);
                     startActivity(start_activity);
 
 

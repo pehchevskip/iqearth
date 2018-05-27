@@ -69,6 +69,7 @@ public class tmpActivity extends AppCompatActivity {
     static final int STATE_MESSAGE_RECEIVED=5;
     static final int STARTED_GAME=6;
     static final int ANSWERED_QUESTION=7;
+    static final int OPPONENT_REGISTER=8;
     //role tag
     private static final String ROLE_TAG="role";
     private static final String CLIENT="client";
@@ -76,7 +77,8 @@ public class tmpActivity extends AppCompatActivity {
     String role;
     //timer
     CountDownTimer timer;
-
+    //nickname for opponent
+    static String nickname;
 
     /**
      * The {@link ViewPager} that will host the section contents.
@@ -112,8 +114,10 @@ public class tmpActivity extends AppCompatActivity {
         //connecting with game controler
         gameControler=GameControler.getInstance();
         game=gameControler.getGame();
-        player=gameControler.getCurrentPlayer();
-        opponent=gameControler.getPlayers().get(0);
+        nickname=getIntent().getStringExtra("nickname");
+        player=gameControler.getPlayers().get(0);
+        Log.d("size of players",String.valueOf(gameControler.getPlayers().size()));
+        opponent = gameControler.getPlayers().get(1);
         mViewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
         tabLayout.addOnTabSelectedListener(new TabLayout.ViewPagerOnTabSelectedListener(mViewPager));
 
@@ -160,15 +164,21 @@ public class tmpActivity extends AppCompatActivity {
                     byte[] readBuff=(byte[])message.obj;
                     String tempMsg=new String(readBuff,0,message.arg1);
                     increaseScore(opponent);
-                    Log.d("enter",tempMsg);
+                    Log.d("opp_score", String.valueOf(opponent.getScore()));
+
 
 
 
                     break;
                 case STARTED_GAME:
                     Log.d("Handler","Started GAme");
+                    break;
                 case ANSWERED_QUESTION:
                     controler.sendReceive.write((String.valueOf(player.getScore()).getBytes()));
+                    break;
+
+
+
 
 
 
@@ -201,6 +211,12 @@ public class tmpActivity extends AppCompatActivity {
                 startActivity(finishedGame);
             }
         }.start();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        controler.sendReceive.cancel();
     }
 
     @SuppressLint("StaticFieldLeak")
@@ -320,7 +336,7 @@ public class tmpActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View view) {
                     String answer = editText.getText().toString().toLowerCase();
-                    controler.sendReceive.write(answer.getBytes());
+
                     switch (sectionNumber) {
                         case 1:
                             if(possibleCountries.contains(answer)) {

@@ -48,6 +48,7 @@ public class BluetoothGameActivity extends AppCompatActivity {
     static final int STATE_CONNECTION_FAILED=4;
     static final int STATE_MESSAGE_RECEIVED=5;
     static final int STARTED_GAME=6;
+    static final int REGISTER_OPPONENT=7;
     //views
     TextView status,roleTv,msg;
     EditText editText;
@@ -91,8 +92,8 @@ public class BluetoothGameActivity extends AppCompatActivity {
         controler.setHandler(handler);
         if(role.equals(CLIENT)){
             roleTv.setText(CLIENT);
-            player=new Player(nickname);
-            gameControler.addPlayer(player);
+
+
             Set<BluetoothDevice> bd=mBluetoothAdapter.getBondedDevices();
 
             for(BluetoothDevice bdd:bd){
@@ -107,10 +108,10 @@ public class BluetoothGameActivity extends AppCompatActivity {
         {
 
             roleTv.setText(SERVER);
-            player=new Player(nickname);
-            gameControler.addPlayer(player);
             controler.serverClass=new BluetoothControler.InnerServerClass();
+
             controler.serverClass.start();
+
         }
 
         ArrayAdapter<String> adapter=new ArrayAdapter<>(BluetoothGameActivity.this,android.R.layout.simple_list_item_1,mGames);
@@ -120,15 +121,18 @@ public class BluetoothGameActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 controler.clientClass=new BluetoothControler.InnerClientClass(bdList.get(i));
                 controler.clientClass.start();
+
             }
         });
+
 
         start_game.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent startGame=new Intent(BluetoothGameActivity.this,tmpActivity.class);
                 startGame.putExtra(ROLE_TAG,role);
-                controler.sendReceive.write(nickname.getBytes());
+                startGame.putExtra("nickname",nickname);
+
 
                 startActivity(startGame);
                 Message msg=Message.obtain();
@@ -150,6 +154,10 @@ public class BluetoothGameActivity extends AppCompatActivity {
                     break;
                 case STATE_CONNECTED:
                     status.setText("Connected");
+                    //register oppponent
+                    Message msg=Message.obtain();
+                    msg.what=REGISTER_OPPONENT;
+                    handler.sendMessage(msg);
                     start_game.setVisibility(View.VISIBLE);
 
                     break;
@@ -161,13 +169,20 @@ public class BluetoothGameActivity extends AppCompatActivity {
                     String playerName=new String(readBuff,0,message.arg1);
                     opponent=new Player(playerName);
                     gameControler.addPlayer(opponent);
+                    Log.d("Opponent",playerName);
+
 
 
                     break;
                 case STARTED_GAME:
+
                    Log.d(TAG,"Started GAme");
                    game=new Game(60000,gameControler.getPlayers(),'M');
                    gameControler.setGame(game);
+                   break;
+                case REGISTER_OPPONENT:
+                    controler.sendReceive.write(nickname.getBytes());
+                    break;
 
 
             }
