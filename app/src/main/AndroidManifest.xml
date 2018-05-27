@@ -21,10 +21,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".MainActivity" />
         <activity android:name=".StartActivity" />
-        <activity android:name=".CreateGame" />
-        <activity android:name=".JoinGame"></activity>
+        <activity android:name=".BluetoothGameActivity" />
+        <activity android:name=".tmpActivity" />
+        <activity android:name=".finishedGameActivity"></activity>
     </application>
 
 </manifest>
