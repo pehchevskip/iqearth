@@ -49,7 +49,5 @@ public class Game {
         this.time = time;
     }
 
-    public void setPlayers(List<Player> players) {
-        this.players = players;
-    }
+
 }
