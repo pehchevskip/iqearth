@@ -86,6 +86,7 @@ public class WifiGameActivity extends AppCompatActivity {
 
     private Button enterButton;
     private EditText answerEditText;
+    private TextView wifiLetter;
 
     private CountDownTimer timer;
 
@@ -133,7 +134,8 @@ public class WifiGameActivity extends AppCompatActivity {
 
         enterButton = findViewById(R.id.wifi_enterBt);
         answerEditText = findViewById(R.id.wifi_answerEt);
-
+        wifiLetter=findViewById(R.id.wifi_letter);
+        wifiLetter.setText((String.valueOf(gameControler.getGame().getLetter())).toUpperCase());
         if(role.equals(SERVER)) {
             Thread socketServerThread = new Thread(new SocketServerThread());
             socketServerThread.start();

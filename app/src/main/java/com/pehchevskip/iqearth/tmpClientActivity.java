@@ -77,7 +77,7 @@ public class tmpClientActivity extends AppCompatActivity {
         @Override
         public void onClick(View view) {
             String ip = editTextAddress.getText().toString();
-            MyClientTask myClientTask = new MyClientTask(ip, SocketServerPORT, ISSTARTED);
+            MyClientTask myClientTask = new MyClientTask(coder.decode(ip), SocketServerPORT, ISSTARTED);
             myClientTask.execute();
         }
     };
