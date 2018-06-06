@@ -1,22 +1,26 @@
 package com.pehchevskip.iqearth;
 
-import android.annotation.SuppressLint;
-import android.os.AsyncTask;
-import android.os.Handler;
+import android.content.Context;
+import android.content.Intent;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.pehchevskip.iqearth.model.Game;
 import com.pehchevskip.iqearth.model.Player;
+import com.pehchevskip.iqearth.model.WifiDevice;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintStream;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.ServerSocket;
@@ -28,13 +32,23 @@ import java.util.List;
 
 public class tmpServerActivity extends AppCompatActivity {
 
-    TextView infoip, msg;
-    Button replyButton;
+    private static final String NICKNAME = "nickname";
+    private static final String ISSTARTED = "isStarted?";
+    private static final String NOTSTARTED = "notStarted";
+    private static final String ROLE_TAG="role";
+    private static final String SERVER="server";
+    private static final int SocketServerPORT = 8080;
+
+    TextView infoip, msg, connectedDevicesTv;
+    Button startButton;
+
     String message = "";
     ServerSocket serverSocket;
 
     Game game;
     Player player;
+    String nickname;
+    List<String> connectedIps;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,29 +57,31 @@ public class tmpServerActivity extends AppCompatActivity {
 
         infoip = findViewById(R.id.infoipTv);
         msg = findViewById(R.id.msgTv);
-        replyButton = findViewById(R.id.replyBt);
-//        replyButton.setOnClickListener(onClickListenerForReplyBt);
+        connectedDevicesTv = findViewById(R.id.connectedDevicesTv);
+        startButton = findViewById(R.id.serverStartBt);
+        startButton.setOnClickListener(startButtonOnClickListener);
+
+        nickname = getIntent().getStringExtra(NICKNAME);
+        connectedIps = new ArrayList<>();
 
         Thread socketServerThread = new Thread(new SocketServerThread());
         socketServerThread.start();
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if(serverSocket != null) {
-            try {
-                serverSocket.close();
-            } catch (IOException e) {
-                e.printStackTrace();
+    View.OnClickListener startButtonOnClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            Intent startGame = new Intent(tmpServerActivity.this, WifiGameActivity.class);
+            startGame.putExtra(NICKNAME, nickname);
+            startGame.putExtra(ROLE_TAG, SERVER);
+            if(serverSocket != null) {
+                try { serverSocket.close(); } catch (IOException e) { e.printStackTrace(); }
             }
+            startActivity(startGame);
         }
-    }
+    };
 
     private class SocketServerThread extends Thread {
-
-        static final int SocketServerPORT = 8080;
-        int count = 0;
 
         @Override
         public void run() {
@@ -74,10 +90,10 @@ public class tmpServerActivity extends AppCompatActivity {
             DataOutputStream dataOutputStream = null;
             try {
                 serverSocket = new ServerSocket(SocketServerPORT);
-                tmpServerActivity.this.runOnUiThread(new Runnable() {
+                runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        infoip.setText("Waiting on: " + getIpAddress() + ':' + serverSocket.getLocalPort());
+                        infoip.setText(String.format("Waiting on: %s", getIpAddress()));
                     }
                 });
 
@@ -85,18 +101,24 @@ public class tmpServerActivity extends AppCompatActivity {
                     socket = serverSocket.accept();
                     dataInputStream = new DataInputStream(socket.getInputStream());
                     dataOutputStream = new DataOutputStream(socket.getOutputStream());
-                    String messageFromClient = "";
-                    messageFromClient = dataInputStream.readUTF();
-                    count++;
-                    message += "#" + count + " from " + socket.getInetAddress() + ":" + socket.getPort() + "\n"
-                            + messageFromClient + '\n';
+                    final String messageFromClient = dataInputStream.readUTF();
+                    message = messageFromClient + " connected! (" + socket.getInetAddress() + ')';
+                    final Socket finalSocket = socket; // na majtiii
                     tmpServerActivity.this.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            msg.setText(message);
+                            if(!messageFromClient.equals(ISSTARTED)) {
+                                msg.setText(message);
+                                addConnectedDevice(messageFromClient, finalSocket.getInetAddress().toString());
+                            }
                         }
                     });
-                    String replyMsg = "hi from server #" + count;
+                    String replyMsg;
+                    if(messageFromClient.equals(ISSTARTED)) {
+                        replyMsg = NOTSTARTED;
+                    } else {
+                        replyMsg = "hi " + messageFromClient + ", here " + nickname + '(' + getIpAddress() + ')';
+                    }
                     dataOutputStream.writeUTF(replyMsg);
                 }
             } catch (final IOException e) {
@@ -133,18 +155,13 @@ public class tmpServerActivity extends AppCompatActivity {
         }
     }
 
-    /*View.OnClickListener onClickListenerForReplyBt = new View.OnClickListener() {
-        @SuppressLint("StaticFieldLeak") @Override
-        public void onClick(View view) {
-            new AsyncTask<Void, Void, Void>() {
-                @Override
-                protected Void doInBackground(Void... voids) {
-                    socketServerReplyThread.run();
-                    return null;
-                }
-            }.execute();
-        }
-    };*/
+    private void addConnectedDevice(String nickname, String ip) {
+        if(connectedIps.contains(ip)) return;
+        String tmp = connectedDevicesTv.getText().toString();
+        tmp += '\n' + nickname + " (" + ip + ')';
+        connectedDevicesTv.setText(tmp);
+        connectedIps.add(ip);
+    }
 
     private String getIpAddress() {
         String ip = "";
@@ -156,7 +173,7 @@ public class tmpServerActivity extends AppCompatActivity {
                 while (enumInetAddress.hasMoreElements()) {
                     InetAddress inetAddress = enumInetAddress.nextElement();
                     if(inetAddress.isSiteLocalAddress()) {
-                        ip += "SiteLocalAddress: " + inetAddress.getHostAddress();
+                        ip += inetAddress.getHostAddress();
                     }
                 }
             }
@@ -165,6 +182,18 @@ public class tmpServerActivity extends AppCompatActivity {
             ip += "Something went wrong!" + e.toString() + "\n";
         }
         return ip;
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if(serverSocket != null) {
+            try {
+                serverSocket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 }

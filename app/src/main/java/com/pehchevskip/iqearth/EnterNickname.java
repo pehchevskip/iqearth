@@ -52,16 +52,15 @@ public class EnterNickname extends AppCompatActivity {
         mButtonSumbit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if("" != mEditTextnickname.getText().toString()){
+                if(!mEditTextnickname.getText().toString().trim().equals("")){
                     nickname=mEditTextnickname.getText().toString();
                     Intent start_activity;
-                    start_activity = new Intent(EnterNickname.this,StartActivity.class);
+//                    start_activity = new Intent(EnterNickname.this,StartActivity.class);
+                    start_activity = new Intent(EnterNickname.this,ServerOrClientActivity.class);
                     start_activity.putExtra(NICKNAME,nickname);
                     player=new Player(nickname);
                     gameControler.addPlayer(player);
                     startActivity(start_activity);
-
-
                 }
             }
         });

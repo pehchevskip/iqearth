@@ -39,7 +39,13 @@ public class GameControler {
                 pl.setScore(score);
             }
         }
+    }
 
+    public void increaseScore(String ipAddress, int score) {
+        for(Player player : players) {
+            if(player.getIpAddress().equals(ipAddress))
+                player.setScore(score);
+        }
     }
 
 

@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.pehchevskip.iqearth">
 
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
@@ -24,7 +25,14 @@
         <activity android:name=".StartActivity" />
         <activity android:name=".BluetoothGameActivity" />
         <activity android:name=".tmpActivity" />
-        <activity android:name=".finishedGameActivity"></activity>
+        <activity android:name=".finishedGameActivity" />
+        <activity android:name=".ServerOrClientActivity" />
+        <activity android:name=".tmpServerActivity" />
+        <activity android:name=".tmpClientActivity" />
+        <activity
+            android:name=".WifiGameActivity"
+            android:label="@string/title_activity_wifi_game"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>

@@ -14,18 +14,6 @@
         android:layout_height="wrap_content"
         android:hint="IP" />
 
-    <EditText
-        android:id="@+id/portEt"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Port" />
-
-    <EditText
-        android:id="@+id/msgForServerEt"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Message for server..." />
-
     <Button
         android:id="@+id/connectBt"
         android:layout_width="match_parent"
@@ -37,6 +25,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Clear" />
+
+    <Button
+        android:id="@+id/startBt"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Start"
+        android:enabled="false"/>
 
     <TextView
         android:id="@+id/responseTv"

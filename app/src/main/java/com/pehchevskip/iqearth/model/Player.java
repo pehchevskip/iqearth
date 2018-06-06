@@ -18,6 +18,7 @@ public class Player {
     private int score;
     private Map<String, Set<String>> answers;
     private GameControler.GameStatus gameStatus;
+    private String ipAddress;
 
     public Player() {
         this("Default nickname");
@@ -65,4 +66,11 @@ public class Player {
         return answers.get(key);
     }
 
+    public String getIpAddress() {
+        return ipAddress;
+    }
+
+    public void setIpAddress(String ipAddress) {
+        this.ipAddress = ipAddress;
+    }
 }

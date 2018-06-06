@@ -1,6 +1,7 @@
 package com.pehchevskip.iqearth;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -22,12 +23,20 @@ import java.net.UnknownHostException;
 
 public class tmpClientActivity extends AppCompatActivity {
 
-    TextView textResponse;
-    EditText editTextAddress, editTextPort;
-    Button buttonConnect, buttonClear;
-    EditText message;
+    private static final String NICKNAME = "nickname";
+    private static final String ISSTARTED = "isStarted?";
+    private static final String STARTED = "nowStarted";
+    private static final String NOTSTARTED = "notStarted";
+    private static final String ROLE_TAG = "role";
+    private static final String CLIENT = "client";
+    private static final String IPADDR = "ipaddr";
+    private static final int SocketServerPORT = 8080;
 
-    Player player;
+    TextView textResponse;
+    EditText editTextAddress;
+    Button buttonConnect, buttonClear, buttonStart;
+
+    String nickname;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,11 +44,12 @@ public class tmpClientActivity extends AppCompatActivity {
         setContentView(R.layout.activity_tmp_client);
 
         editTextAddress = findViewById(R.id.addressEt);
-        editTextPort = findViewById(R.id.portEt);
         buttonConnect = findViewById(R.id.connectBt);
         buttonClear = findViewById(R.id.clearBt);
+        buttonStart = findViewById(R.id.startBt);
         textResponse = findViewById(R.id.responseTv);
-        message = findViewById(R.id.msgForServerEt);
+
+        nickname = getIntent().getStringExtra(NICKNAME);
 
         buttonConnect.setOnClickListener(buttonConnectOnClickListener);
         buttonClear.setOnClickListener(new View.OnClickListener() {
@@ -48,27 +58,30 @@ public class tmpClientActivity extends AppCompatActivity {
                 textResponse.setText("");
             }
         });
+        buttonStart.setOnClickListener(buttonStartOnClickListener);
     }
 
     View.OnClickListener buttonConnectOnClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
-//            MyClientTask myClientTask = new MyClientTask(editTextAddress.getText().toString(), Integer.parseInt(editTextPort.getText().toString()));
-//            myClientTask.execute();
-            String tMsg = message.getText().toString();
-            if(tMsg.equals("")) {
-                tMsg = null;
-                Toast.makeText(tmpClientActivity.this, "No message for server sent!", Toast.LENGTH_SHORT);
-            }
+            String tMsg = nickname;
             String ip = editTextAddress.getText().toString();
-            int port = Integer.parseInt(editTextPort.getText().toString());
-            MyClientTask myClientTask = new MyClientTask(ip, port, tMsg);
+            MyClientTask myClientTask = new MyClientTask(ip, SocketServerPORT, tMsg);
+            myClientTask.execute();
+        }
+    };
+
+    View.OnClickListener buttonStartOnClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            String ip = editTextAddress.getText().toString();
+            MyClientTask myClientTask = new MyClientTask(ip, SocketServerPORT, ISSTARTED);
             myClientTask.execute();
         }
     };
 
     @SuppressLint("StaticFieldLeak")
-    public class MyClientTask extends AsyncTask<Void, Void, Void> {
+    private class MyClientTask extends AsyncTask<Void, Void, Void> {
 
         String dstAddress;
         int dstPort;
@@ -95,19 +108,6 @@ public class tmpClientActivity extends AppCompatActivity {
                     dataOutputStream.writeUTF(msgToServer);
                 }
                 response = dataInputStream.readUTF();
-//                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(1024);
-//                byte[] buffer = new byte[1024];
-//
-//                int bytesRead;
-//                InputStream inputStream = socket.getInputStream();
-//                /*
-//                 * notice:
-//                 * inputStream.read() will block if no data return
-//                 */
-//                while ((bytesRead = inputStream.read(buffer)) != -1) {
-//                    byteArrayOutputStream.write(buffer, 0, bytesRead);
-//                    response += byteArrayOutputStream.toString("UTF-8");
-//                }
             } catch (UnknownHostException e) {
                 e.printStackTrace();
                 response = "UnknownHostException" + e.toString();
@@ -142,8 +142,23 @@ public class tmpClientActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(Void aVoid) {
-            textResponse.setText(response);
-            super.onPostExecute(aVoid);
+            if(!msgToServer.equals(ISSTARTED)){
+                textResponse.setText(response);
+                buttonStart.setEnabled(true);
+                super.onPostExecute(aVoid);
+            } else {
+                if(response.equals(STARTED)) {
+                    Toast.makeText(tmpClientActivity.this, "Server started!", Toast.LENGTH_SHORT).show();
+                    Intent startGame = new Intent(tmpClientActivity.this, WifiGameActivity.class);
+                    startGame.putExtra(NICKNAME, nickname);
+                    startGame.putExtra(ROLE_TAG, CLIENT);
+                    String ip = editTextAddress.getText().toString();
+                    startGame.putExtra(IPADDR, ip);
+                    startActivity(startGame);
+                } else if(response.equals(NOTSTARTED)) {
+                    Toast.makeText(tmpClientActivity.this, "Server haven't started the game yet!", Toast.LENGTH_SHORT).show();
+                }
+            }
         }
     }
 }
