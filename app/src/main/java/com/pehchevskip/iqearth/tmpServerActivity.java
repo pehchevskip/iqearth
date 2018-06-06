@@ -14,6 +14,7 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.pehchevskip.iqearth.ipAdressToHash.ipAdressHashCode;
 import com.pehchevskip.iqearth.model.Game;
 import com.pehchevskip.iqearth.model.Player;
 import com.pehchevskip.iqearth.model.WifiDevice;
@@ -41,7 +42,7 @@ public class tmpServerActivity extends AppCompatActivity {
 
     TextView infoip, msg, connectedDevicesTv;
     Button startButton;
-
+    public ipAdressHashCode coder;
     String message = "";
     ServerSocket serverSocket;
 
@@ -63,7 +64,7 @@ public class tmpServerActivity extends AppCompatActivity {
 
         nickname = getIntent().getStringExtra(NICKNAME);
         connectedIps = new ArrayList<>();
-
+        coder=new ipAdressHashCode();
         Thread socketServerThread = new Thread(new SocketServerThread());
         socketServerThread.start();
     }
@@ -93,7 +94,8 @@ public class tmpServerActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        infoip.setText(String.format("Waiting on: %s", getIpAddress()));
+                        String code=coder.transform(getIpAddress());
+                        infoip.setText(String.format("Waiting on: %s, decoded:%s", code,coder.decode(code)));
                     }
                 });
 
@@ -117,7 +119,7 @@ public class tmpServerActivity extends AppCompatActivity {
                     if(messageFromClient.equals(ISSTARTED)) {
                         replyMsg = NOTSTARTED;
                     } else {
-                        replyMsg = "hi " + messageFromClient + ", here " + nickname + '(' + getIpAddress() + ')';
+                        replyMsg = "hi " + messageFromClient + ", here " + nickname + '(' + coder.transform(getIpAddress()) + ')';
                     }
                     dataOutputStream.writeUTF(replyMsg);
                 }

@@ -11,6 +11,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.pehchevskip.iqearth.ipAdressToHash.ipAdressHashCode;
 import com.pehchevskip.iqearth.model.Player;
 
 import java.io.ByteArrayOutputStream;
@@ -37,6 +38,7 @@ public class tmpClientActivity extends AppCompatActivity {
     Button buttonConnect, buttonClear, buttonStart;
 
     String nickname;
+    ipAdressHashCode coder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,7 +52,7 @@ public class tmpClientActivity extends AppCompatActivity {
         textResponse = findViewById(R.id.responseTv);
 
         nickname = getIntent().getStringExtra(NICKNAME);
-
+        coder=new ipAdressHashCode();
         buttonConnect.setOnClickListener(buttonConnectOnClickListener);
         buttonClear.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -65,7 +67,7 @@ public class tmpClientActivity extends AppCompatActivity {
         @Override
         public void onClick(View view) {
             String tMsg = nickname;
-            String ip = editTextAddress.getText().toString();
+            String ip =coder.decode(editTextAddress.getText().toString());
             MyClientTask myClientTask = new MyClientTask(ip, SocketServerPORT, tMsg);
             myClientTask.execute();
         }
