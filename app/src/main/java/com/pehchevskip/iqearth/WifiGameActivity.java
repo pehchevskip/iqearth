@@ -119,7 +119,7 @@ public class WifiGameActivity extends AppCompatActivity {
 
         role = getIntent().getStringExtra(ROLE_TAG);
         gameControler = GameControler.getInstance();
-        game = new Game(60000, 'm');
+        game = new Game(60000);
         gameControler.setGame(game);
         nickname = getIntent().getStringExtra(NICKNAME);
         player = gameControler.getPlayers().get(0);
@@ -251,7 +251,7 @@ public class WifiGameActivity extends AppCompatActivity {
                     String answer = editText.getText().toString().toLowerCase();
                     switch (sectionNumber) {
                         case 1:
-                            if(possibleCountries.contains(answer)) {
+                            if(possibleCountries.contains(answer)&&!player.getAnswers("countries").contains(answer)&&checkLetter(answer)) {
                                 Toast.makeText(rootView.getContext(), "Correct", Toast.LENGTH_SHORT).show();
                                 player.getAnswers("countries").add(answer);
                                 increaseScore(player);
@@ -266,7 +266,7 @@ public class WifiGameActivity extends AppCompatActivity {
                                 Toast.makeText(rootView.getContext(), "Incorrect", Toast.LENGTH_SHORT).show();
                             break;
                         case 2:
-                            if(possibleAnimals.contains(answer)) {
+                            if(possibleAnimals.contains(answer)&&!player.getAnswers("animals").contains(answer)&&checkLetter(answer)) {
                                 Toast.makeText(rootView.getContext(), "Correct", Toast.LENGTH_SHORT).show();
                                 player.getAnswers("animals").add(answer);
                                 increaseScore(player);
@@ -277,7 +277,7 @@ public class WifiGameActivity extends AppCompatActivity {
                                 Toast.makeText(rootView.getContext(), "Incorrect", Toast.LENGTH_SHORT).show();
                             break;
                         case 3:
-                            if(possibleMountains.contains(answer)) {
+                            if(possibleMountains.contains(answer)&&!player.getAnswers("mountains").contains(answer)&&checkLetter(answer)) {
                                 Toast.makeText(rootView.getContext(), "Correct", Toast.LENGTH_SHORT).show();
                                 player.getAnswers("mountains").add(answer);
                                 increaseScore(player);
@@ -288,6 +288,15 @@ public class WifiGameActivity extends AppCompatActivity {
                                 Toast.makeText(rootView.getContext(), "Incorrect", Toast.LENGTH_SHORT).show();
                             break;
                         }
+
+                }
+
+                private boolean checkLetter(String answer) {
+                    char firstLetter=answer.charAt(0);
+                    char gameLetter=gameControler.getGame().getLetter();
+                    if(firstLetter==gameLetter){
+                        return true;}
+                    return false;
                 }
             });
 

@@ -2,6 +2,7 @@ package com.pehchevskip.iqearth.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Created by pehchevskip on 18-May-18.
@@ -22,15 +23,14 @@ public class Game {
         players = new ArrayList<>();
     }
 
-    public Game(int time, char letter) {
-        this.time = time;
-        this.letter = letter;
-    }
 
-    public Game(int time, List<Player> players, char letter) {
+
+    public Game(int time) {
         this.time = time;
-        this.players = players;
-        this.letter = letter;
+        this.players = new ArrayList<>();
+        Random rnd = new Random();
+        char c = (char) (rnd.nextInt(26) + 'a');
+        this.letter=c;
     }
 
     public int getTime() {

@@ -9,6 +9,10 @@ public class ipAdressHashCode {
         int sum;
         StringBuilder builder=new StringBuilder();
         for(int i=0;i<ipAdress.length();i++){
+            if(ipAdress.charAt(i)=='.'){
+                builder.append('a');
+                continue;
+            }
             sum=(int)ipAdress.charAt(i);
             sum+=1;
             builder.append((char)sum);
@@ -20,6 +24,10 @@ public class ipAdressHashCode {
         int sum;
         StringBuilder builder=new StringBuilder();
         for(int i=0;i<ipAdress.length();i++){
+            if(ipAdress.charAt(i)=='a'){
+                builder.append('.');
+                continue;
+            }
             sum=(int)ipAdress.charAt(i);
             sum-=1;
             builder.append((char)sum);

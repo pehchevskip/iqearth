@@ -5,17 +5,35 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".finishedGameActivity">
+
     <TextView
-        android:layout_width="wrap_content"
+        android:id="@+id/game_status"
+        android:layout_width="127dp"
         android:layout_height="wrap_content"
-        android:id="@+id/game_status"/>
+        android:layout_marginTop="95dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <TextView
-        android:layout_width="wrap_content"
+        android:id="@+id/your_score"
+        android:layout_width="165dp"
         android:layout_height="wrap_content"
-        android:id="@+id/your_score"/>
+        android:layout_marginTop="23dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/game_status" />
+
     <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/opponent_score"/>
+        android:id="@+id/opponent_score"
+        android:layout_width="151dp"
+        android:layout_height="22dp"
+        android:layout_marginBottom="378dp"
+        android:layout_marginLeft="128dp"
+        android:layout_marginStart="128dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/your_score"
+        app:layout_constraintVertical_bias="1.0" />
 
 </android.support.constraint.ConstraintLayout>
