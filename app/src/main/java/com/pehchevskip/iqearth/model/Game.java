@@ -22,6 +22,11 @@ public class Game {
         players = new ArrayList<>();
     }
 
+    public Game(int time, char letter) {
+        this.time = time;
+        this.letter = letter;
+    }
+
     public Game(int time, List<Player> players, char letter) {
         this.time = time;
         this.players = players;

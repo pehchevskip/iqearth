@@ -39,10 +39,14 @@ import com.pehchevskip.iqearth.persistance.entities.EntityMountain;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.IntStream;
@@ -76,7 +80,6 @@ public class WifiGameActivity extends AppCompatActivity {
 
     private static String role;
     private static Player player;
-    private static List<Player> opponents;
     private static Game game;
     private static GameControler gameControler;
     private static String nickname;
@@ -116,12 +119,11 @@ public class WifiGameActivity extends AppCompatActivity {
 
         role = getIntent().getStringExtra(ROLE_TAG);
         gameControler = GameControler.getInstance();
-//        game = gameControler.getGame();
-//        player = GameControler.getPlayers().get(0);
-        opponents = new ArrayList<>();
-//        for(int i=0; i<GameControler.getPlayers().size(); ++i) if(i != 0) opponents.add(GameControler.getPlayers().get(i));
-//        Toast.makeText(this, "Number of players " + GameControler.getPlayers().size(), Toast.LENGTH_SHORT).show();
+        game = new Game(60000, 'm');
+        gameControler.setGame(game);
         nickname = getIntent().getStringExtra(NICKNAME);
+        player = gameControler.getPlayers().get(0);
+        player.setIpAddress(getIpAddress());
 
         // Database
         db = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "iqearth-db").build();
@@ -141,7 +143,7 @@ public class WifiGameActivity extends AppCompatActivity {
         }
 
         //start timer
-//        startTimer();
+        startTimer();
     }
 
     private class SocketServerThread extends Thread {
@@ -165,10 +167,10 @@ public class WifiGameActivity extends AppCompatActivity {
                         String nick = messageFromClient.replace(HEREISMYNICK, "");
                         Player opponent = new Player(nick);
                         opponent.setIpAddress(socket.getInetAddress().toString());
-                        opponents.add(opponent);
+                        gameControler.addPlayer(opponent);
                         replyMsg = "you are added as my opponent";
-                    } else if(messageFromClient.contains(CORRECTANSWER)) {
-//                        increaseScore();
+                    } else if(messageFromClient.equals(CORRECTANSWER)) {
+                        increaseScore(socket.getInetAddress().toString());
                         replyMsg = CORRECTANSWER;
                     }
                     dataOutputStream.writeUTF(replyMsg);
@@ -194,7 +196,7 @@ public class WifiGameActivity extends AppCompatActivity {
         }
     }
 
-    private class MyClientTask extends AsyncTask<Void, Void, Void> {
+    private static class MyClientTask extends AsyncTask<Void, Void, Void> {
 
         String dstAddress = ipAddress;
         int dstPort = SocketServerPORT;
@@ -231,11 +233,6 @@ public class WifiGameActivity extends AppCompatActivity {
             }
             return null;
         }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-
-        }
     }
 
 
@@ -261,7 +258,8 @@ public class WifiGameActivity extends AppCompatActivity {
                                 Log.d("Score",String.valueOf(player.getScore()));
                                 updateTextView(player.getAnswers("countries"), textView);
                                 if(role.equals(CLIENT)) {
-
+                                    MyClientTask myClientTask = new MyClientTask(CORRECTANSWER);
+                                    myClientTask.execute();
                                 }
                             }
                             else
@@ -421,19 +419,21 @@ public class WifiGameActivity extends AppCompatActivity {
     }
 
     private void startTimer() {
-        timer=new CountDownTimer(gameControler.getGame().getTime(),1000) {
+        timer = new CountDownTimer(gameControler.getGame().getTime(),1000) {
             @Override
             public void onTick(long l) {
                 Log.d("TIMER",""+l/1000.);
             }
-
             @Override
             public void onFinish() {
                 Log.d("TIMER","DONE");
-                Intent finishedGame=new Intent(WifiGameActivity.this,finishedGameActivity.class);
-                GameControler.GameStatus gameStatus=gameControler.getResults();
+                Intent finishedGame = new Intent(WifiGameActivity.this, tmpWifiFinishActivity.class);
+                GameControler.GameStatus gameStatus = gameControler.getResults();
                 Log.d("GameStatus", String.valueOf(gameStatus));
                 finishedGame.putExtra("GAMESTATUS",gameStatus);
+                finishedGame.putExtra(ROLE_TAG, role);
+                if(role.equals(CLIENT)) finishedGame.putExtra(IPADDR, ipAddress);
+                if(serverSocket != null) try {  serverSocket.close(); } catch (IOException e) { e.printStackTrace(); }
                 startActivity(finishedGame);
             }
         }.start();
@@ -451,12 +451,25 @@ public class WifiGameActivity extends AppCompatActivity {
         myClientTask.execute();
     }
 
-    private Player findPlayerByIp(String ip) {
-        for(Player player : opponents) {
-            if(player.getIpAddress().equals(ip))
-                return player;
+    private String getIpAddress() {
+        String ip = "";
+        try {
+            Enumeration<NetworkInterface> enumNetworkInterface = NetworkInterface.getNetworkInterfaces();
+            while (enumNetworkInterface.hasMoreElements()) {
+                NetworkInterface networkInterface = enumNetworkInterface.nextElement();
+                Enumeration<InetAddress> enumInetAddress = networkInterface.getInetAddresses();
+                while (enumInetAddress.hasMoreElements()) {
+                    InetAddress inetAddress = enumInetAddress.nextElement();
+                    if(inetAddress.isSiteLocalAddress()) {
+                        ip += inetAddress.getHostAddress();
+                    }
+                }
+            }
+        } catch (SocketException e) {
+            e.printStackTrace();
+            ip += "Something went wrong!" + e.toString() + "\n";
         }
-        return null;
+        return ip;
     }
 
 }

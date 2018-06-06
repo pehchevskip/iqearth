@@ -1,9 +1,12 @@
 package com.pehchevskip.iqearth.controlers;
 
+import android.util.Log;
+
 import com.pehchevskip.iqearth.model.Game;
 import com.pehchevskip.iqearth.model.Player;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class GameControler {
 
@@ -43,7 +46,7 @@ public class GameControler {
 
     public void increaseScore(String ipAddress, int score) {
         for(Player player : players) {
-            if(player.getIpAddress().equals(ipAddress))
+            if(player.getIpAddress() != null && player.getIpAddress().equals(ipAddress))
                 player.setScore(score);
         }
     }
@@ -67,8 +70,18 @@ public class GameControler {
         }
         gameStatus=currentPlayer.getGameStatus();
         return gameStatus;
-
     }
+
+    public String giveResults(String ip) {
+        Player bestPlayer = findBestPlayer();
+        Player me = findPlayerByIp(ip);
+        if(bestPlayer == me) {
+            return "Win";
+        } else if(bestPlayer.getScore() == me.getScore()) {
+            return "Draw";
+        } else return "Loss";
+    }
+
     private Player findBestPlayer(){
         Player maxPlayer=null;
         if(players.size()!=0){
@@ -94,9 +107,25 @@ public class GameControler {
 
     public void addPlayer(Player player){
         this.players.add(player);
+        Log.i("add", "added player with nick:" + player.getNickname() + ", and ip:" + player.getIpAddress());
     }
 
-    public static ArrayList<Player> getPlayers() {
+    public ArrayList<Player> getPlayers() {
         return players;
+    }
+
+    public List<Player> getOpponents() {
+        return players.subList(1, players.size());
+    }
+
+    public Player getCurrentPlayer() {
+        return players.get(0);
+    }
+
+    public Player findPlayerByIp(String ip) {
+        for(Player player : players){
+            if(player.getIpAddress() != null && player.getIpAddress().equals(ip)) return player;
+        }
+        return null;
     }
 }
