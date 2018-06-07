@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.CountDownTimer;
 import android.support.design.widget.TabLayout;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
@@ -23,7 +25,6 @@ import android.view.ViewGroup;
 
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -48,6 +49,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.IntStream;
 
 public class WifiGameActivity extends AppCompatActivity {
 
@@ -65,7 +67,6 @@ public class WifiGameActivity extends AppCompatActivity {
     private static final String STARTED = "nowStarted";
     private static final String CORRECTANSWER = "correctAnswerTag";
     private static final String HEREISMYNICK = "hereIsMyNick";
-    private static final String SCORE = "SCORE";
     private static final String ROLE_TAG="role";
     private static final String CLIENT="client";
     private static final String SERVER="server";
@@ -262,6 +263,10 @@ public class WifiGameActivity extends AppCompatActivity {
                                 increaseScore(player);
                                 Log.d("Score",String.valueOf(player.getScore()));
                                 updateTextView(player.getAnswers("countries"), textView);
+                                if(role.equals(CLIENT)) {
+                                    MyClientTask myClientTask = new MyClientTask(CORRECTANSWER);
+                                    myClientTask.execute();
+                                }
                             }
                             else
                                 Toast.makeText(rootView.getContext(), "Incorrect", Toast.LENGTH_SHORT).show();
@@ -289,8 +294,18 @@ public class WifiGameActivity extends AppCompatActivity {
                                 Toast.makeText(rootView.getContext(), "Incorrect", Toast.LENGTH_SHORT).show();
                             break;
                         }
+
+                }
+
+                private boolean checkLetter(String answer) {
+                    char firstLetter=answer.charAt(0);
+                    char gameLetter=gameControler.getGame().getLetter();
+                    if(firstLetter==gameLetter){
+                        return true;}
+                    return false;
                 }
             });
+
             return rootView;
         }
         private static final String ARG_SECTION_NUMBER = "section_number";

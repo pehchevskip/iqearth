@@ -335,11 +335,11 @@ public class tmpActivity extends AppCompatActivity {
             button.setOnClickListener(new Button.OnClickListener(){
                 @Override
                 public void onClick(View view) {
-                    String answer = editText.getText().toString().toLowerCase();
+                    String answer = editText.getText().toString().toLowerCase().trim();
 
                     switch (sectionNumber) {
                         case 1:
-                            if(possibleCountries.contains(answer)) {
+                            if(possibleCountries.contains(answer)&&!player.getAnswers("countries").contains(answer)&&checkLetter(answer)) {
                                 Toast.makeText(rootView.getContext(), "Correct", Toast.LENGTH_SHORT).show();
                                 player.getAnswers("countries").add(answer);
                                 increaseScore(player);
@@ -352,7 +352,7 @@ public class tmpActivity extends AppCompatActivity {
 
                             break;
                         case 2:
-                            if(possibleAnimals.contains(answer)) {
+                            if(possibleAnimals.contains(answer)&&!player.getAnswers("animals").contains(answer)&&checkLetter(answer)) {
                                 Toast.makeText(rootView.getContext(), "Correct", Toast.LENGTH_SHORT).show();
                                 player.getAnswers("animals").add(answer);
                                 increaseScore(player);
@@ -364,7 +364,7 @@ public class tmpActivity extends AppCompatActivity {
 
                             break;
                         case 3:
-                            if(possibleMountains.contains(answer)) {
+                            if(possibleMountains.contains(answer)&&!player.getAnswers("mountains").contains(answer)&&checkLetter(answer)) {
                                 Toast.makeText(rootView.getContext(), "Correct", Toast.LENGTH_SHORT).show();
                                 player.getAnswers("mountains").add(answer);
                                 increaseScore(player);
@@ -376,6 +376,15 @@ public class tmpActivity extends AppCompatActivity {
 
                             break;
                     }
+                    editText.setText(' ');
+                }
+
+                private boolean checkLetter(String answer) {
+                    char firstLetter=answer.charAt(0);
+                    char gameLetter=gameControler.getGame().getLetter();
+                    if(firstLetter==gameLetter){
+                        return true;}
+                        return false;
                 }
             });
             return rootView;

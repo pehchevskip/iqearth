@@ -177,7 +177,7 @@ public class BluetoothGameActivity extends AppCompatActivity {
                 case STARTED_GAME:
 
                    Log.d(TAG,"Started GAme");
-                   game=new Game(60000,gameControler.getPlayers(),'M');
+                   game=new Game(60000);
                    gameControler.setGame(game);
                    break;
                 case REGISTER_OPPONENT:
