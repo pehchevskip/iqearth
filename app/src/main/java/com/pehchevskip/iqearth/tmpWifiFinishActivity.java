@@ -3,9 +3,7 @@ package com.pehchevskip.iqearth;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.pehchevskip.iqearth.controlers.GameControler;
 import com.pehchevskip.iqearth.model.Player;
@@ -22,9 +20,12 @@ public class tmpWifiFinishActivity extends AppCompatActivity {
 
     private static final int SocketServerPORT = 8080;
     private static final String IPADDR = "ipaddr";
-    private static final String ROLE_TAG="role";
-    private static final String CLIENT="client";
-    private static final String SERVER="server";
+    private static final String ROLE_TAG = "role";
+    private static final String ISSTARTED = "isStarted?";
+    private static final String NOTSTARTED = "notStarted";
+    private static final String CLIENT = "client";
+    private static final String SERVER = "server";
+    private static final String SCORE = "SCORE";
 
     private String role;
     private String ipAddress;
@@ -70,9 +71,16 @@ public class tmpWifiFinishActivity extends AppCompatActivity {
                     dataOutputStream = new DataOutputStream(socket.getOutputStream());
                     final String messageFromClient = dataInputStream.readUTF();
                     // GAME STATES HERE ....
-                    String replyMsg = null;
+                    String replyMsg = "";
                     if(messageFromClient.equals("giveMeResults")) {
                         replyMsg = gameControler.giveResults(socket.getInetAddress().toString());
+                    } else if(messageFromClient.contains(SCORE)) {
+                        String score = messageFromClient.replace(SCORE, "");
+                        gameControler.increaseScore(socket.getInetAddress().toString(), Integer.parseInt(score));
+                        updateScores();
+                        replyMsg = "added score";
+                    } else if(messageFromClient.equals(ISSTARTED)) {
+                        replyMsg = NOTSTARTED;
                     }
                     dataOutputStream.writeUTF(replyMsg);
                 }
@@ -124,10 +132,25 @@ public class tmpWifiFinishActivity extends AppCompatActivity {
 
     private void listOtherPlayers() {
         List<Player> opponents = gameControler.getOpponents();
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
         sb.append(resultTv.getText());
         for(Player player : opponents)
             sb.append(player.getNickname() + ": " + player.getScore() + '\n');
-        resultTv.setText(sb.toString());
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                resultTv.setText(sb.toString());
+            }
+        });
+    }
+
+    private void updateScores() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                resultTv.setText("My score: " + me.getScore() + "\n\n");
+            }
+        });
+        listOtherPlayers();
     }
 }

@@ -5,12 +5,9 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
 
-import com.pehchevskip.iqearth.bluetooth.BluetoothControler;
 import com.pehchevskip.iqearth.controlers.GameControler;
 import com.pehchevskip.iqearth.controlers.GameControler.GameStatus;
 import com.pehchevskip.iqearth.model.Player;
-
-import static com.pehchevskip.iqearth.controlers.GameControler.GameStatus.*;
 
 public class finishedGameActivity extends AppCompatActivity {
 

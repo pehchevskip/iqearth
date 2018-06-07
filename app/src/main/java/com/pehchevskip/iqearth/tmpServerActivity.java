@@ -122,6 +122,7 @@ public class tmpServerActivity extends AppCompatActivity {
                         replyMsg = "hi " + messageFromClient + ", here " + nickname + '(' + coder.transform(getIpAddress()) + ')';
                     }
                     dataOutputStream.writeUTF(replyMsg);
+                    startButton.setEnabled(true);
                 }
             } catch (final IOException e) {
                 e.printStackTrace();

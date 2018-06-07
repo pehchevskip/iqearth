@@ -6,8 +6,6 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.CountDownTimer;
 import android.support.design.widget.TabLayout;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
@@ -25,6 +23,7 @@ import android.view.ViewGroup;
 
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -49,7 +48,6 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.IntStream;
 
 public class WifiGameActivity extends AppCompatActivity {
 
@@ -67,6 +65,7 @@ public class WifiGameActivity extends AppCompatActivity {
     private static final String STARTED = "nowStarted";
     private static final String CORRECTANSWER = "correctAnswerTag";
     private static final String HEREISMYNICK = "hereIsMyNick";
+    private static final String SCORE = "SCORE";
     private static final String ROLE_TAG="role";
     private static final String CLIENT="client";
     private static final String SERVER="server";
@@ -86,6 +85,8 @@ public class WifiGameActivity extends AppCompatActivity {
 
     private Button enterButton;
     private EditText answerEditText;
+    private TextView timerTv;
+    private ProgressBar timerPb;
 
     private CountDownTimer timer;
 
@@ -122,8 +123,10 @@ public class WifiGameActivity extends AppCompatActivity {
         game = new Game(60000, 'm');
         gameControler.setGame(game);
         nickname = getIntent().getStringExtra(NICKNAME);
-        player = gameControler.getPlayers().get(0);
+        gameControler.clearPlayerList();
+        player = new Player(nickname);
         player.setIpAddress(getIpAddress());
+        gameControler.addPlayer(player);
 
         // Database
         db = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "iqearth-db").build();
@@ -133,6 +136,8 @@ public class WifiGameActivity extends AppCompatActivity {
 
         enterButton = findViewById(R.id.wifi_enterBt);
         answerEditText = findViewById(R.id.wifi_answerEt);
+        timerTv = findViewById(R.id.wifiTimerTv);
+        timerPb = findViewById(R.id.wifiTimerPb);
 
         if(role.equals(SERVER)) {
             Thread socketServerThread = new Thread(new SocketServerThread());
@@ -257,10 +262,6 @@ public class WifiGameActivity extends AppCompatActivity {
                                 increaseScore(player);
                                 Log.d("Score",String.valueOf(player.getScore()));
                                 updateTextView(player.getAnswers("countries"), textView);
-                                if(role.equals(CLIENT)) {
-                                    MyClientTask myClientTask = new MyClientTask(CORRECTANSWER);
-                                    myClientTask.execute();
-                                }
                             }
                             else
                                 Toast.makeText(rootView.getContext(), "Incorrect", Toast.LENGTH_SHORT).show();
@@ -290,7 +291,6 @@ public class WifiGameActivity extends AppCompatActivity {
                         }
                 }
             });
-
             return rootView;
         }
         private static final String ARG_SECTION_NUMBER = "section_number";
@@ -422,10 +422,17 @@ public class WifiGameActivity extends AppCompatActivity {
         timer = new CountDownTimer(gameControler.getGame().getTime(),1000) {
             @Override
             public void onTick(long l) {
-                Log.d("TIMER",""+l/1000.);
+                timerTv.setText(l/1000 + "s");
+                timerPb.setProgress((int) (l/1000));
             }
             @Override
             public void onFinish() {
+                timerTv.setText("0");
+                timerPb.setProgress(0);
+                if(role.equals(CLIENT)) {
+                    MyClientTask myClientTask = new MyClientTask(SCORE + gameControler.getCurrentPlayer().getScore());
+                    myClientTask.execute();
+                }
                 Log.d("TIMER","DONE");
                 Intent finishedGame = new Intent(WifiGameActivity.this, tmpWifiFinishActivity.class);
                 GameControler.GameStatus gameStatus = gameControler.getResults();

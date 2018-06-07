@@ -1,6 +1,9 @@
 package com.pehchevskip.iqearth;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.support.v7.app.AppCompatActivity;
@@ -10,17 +13,14 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.pehchevskip.iqearth.controlers.GameControler;
-import com.pehchevskip.iqearth.model.Game;
-
 public class ServerOrClientActivity extends AppCompatActivity {
 
     private static final String NICKNAME = "nickname";
 
-    TextView welcomeTv;
-    Button createBtn;
-    Button joinBtn;
-    String nickname;
+    private TextView welcomeTv;
+    private Button createBtn;
+    private Button joinBtn;
+    private String nickname;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,7 +35,25 @@ public class ServerOrClientActivity extends AppCompatActivity {
 
         nickname = getIntent().getStringExtra(NICKNAME);
         welcomeTv.setText(String.format("Welcome %s!", nickname));
+
+        registerReceiver(broadcastReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
     }
+
+    private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            NetworkInfo networkInfo = intent.getParcelableExtra(ConnectivityManager.EXTRA_NETWORK_INFO);
+            if(networkInfo.getType() == ConnectivityManager.TYPE_WIFI) {
+                if(networkInfo.isConnected()) {
+                    createBtn.setEnabled(true);
+                    joinBtn.setEnabled(true);
+                } else {
+                    createBtn.setEnabled(false);
+                    joinBtn.setEnabled(false);
+                }
+            }
+        }
+    };
 
     @Override
     protected void onStart() {
@@ -51,6 +69,12 @@ public class ServerOrClientActivity extends AppCompatActivity {
             createBtn.setEnabled(true);
             joinBtn.setEnabled(true);
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(broadcastReceiver);
     }
 
     View.OnClickListener createOnClickListener = new View.OnClickListener() {

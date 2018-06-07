@@ -128,4 +128,8 @@ public class GameControler {
         }
         return null;
     }
+
+    public void clearPlayerList() {
+        players.clear();
+    }
 }

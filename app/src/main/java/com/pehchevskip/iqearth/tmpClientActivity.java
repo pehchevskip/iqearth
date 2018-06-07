@@ -67,7 +67,7 @@ public class tmpClientActivity extends AppCompatActivity {
         @Override
         public void onClick(View view) {
             String tMsg = nickname;
-            String ip =coder.decode(editTextAddress.getText().toString());
+            String ip = coder.decode(editTextAddress.getText().toString());
             MyClientTask myClientTask = new MyClientTask(ip, SocketServerPORT, tMsg);
             myClientTask.execute();
         }
@@ -76,7 +76,7 @@ public class tmpClientActivity extends AppCompatActivity {
     View.OnClickListener buttonStartOnClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
-            String ip = editTextAddress.getText().toString();
+            String ip = coder.decode(editTextAddress.getText().toString());
             MyClientTask myClientTask = new MyClientTask(ip, SocketServerPORT, ISSTARTED);
             myClientTask.execute();
         }
@@ -154,7 +154,7 @@ public class tmpClientActivity extends AppCompatActivity {
                     Intent startGame = new Intent(tmpClientActivity.this, WifiGameActivity.class);
                     startGame.putExtra(NICKNAME, nickname);
                     startGame.putExtra(ROLE_TAG, CLIENT);
-                    String ip = editTextAddress.getText().toString();
+                    String ip = dstAddress;
                     startGame.putExtra(IPADDR, ip);
                     startActivity(startGame);
                 } else if(response.equals(NOTSTARTED)) {
