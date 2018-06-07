@@ -62,8 +62,8 @@
     <RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="end|top"
-        android:layout_marginTop="50dp">
+        android:layout_gravity="end|bottom"
+        android:layout_marginBottom="50dp">
         <TextView
             android:id="@+id/wifiTimerTv"
             android:layout_width="wrap_content"
@@ -84,5 +84,15 @@
             android:progress="60"
             android:max="60"/>
     </RelativeLayout>
+
+    <TextView
+        android:id="@+id/wifi_letter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|bottom"
+        android:layout_marginBottom="150dp"
+        android:layout_marginRight="10dp"
+        android:textSize="30sp"
+        android:text="C" />
 
 </android.support.design.widget.CoordinatorLayout>

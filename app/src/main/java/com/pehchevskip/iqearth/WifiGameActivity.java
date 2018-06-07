@@ -25,6 +25,7 @@ import android.view.ViewGroup;
 
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -48,6 +49,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 import java.util.stream.IntStream;
 
@@ -65,8 +67,8 @@ public class WifiGameActivity extends AppCompatActivity {
     private static final String NICKNAME = "nickname";
     private static final String ISSTARTED = "isStarted?";
     private static final String STARTED = "nowStarted";
-    private static final String CORRECTANSWER = "correctAnswerTag";
     private static final String HEREISMYNICK = "hereIsMyNick";
+    private static final String SCORE = "score";
     private static final String ROLE_TAG="role";
     private static final String CLIENT="client";
     private static final String SERVER="server";
@@ -81,12 +83,13 @@ public class WifiGameActivity extends AppCompatActivity {
     private static String role;
     private static Player player;
     private static Game game;
+    private static char letter;
     private static GameControler gameControler;
     private static String nickname;
 
     private Button enterButton;
     private EditText answerEditText;
-    private TextView timerTv;
+    private TextView timerTv, letterTv;
     private ProgressBar timerPb;
 
     private CountDownTimer timer;
@@ -121,7 +124,7 @@ public class WifiGameActivity extends AppCompatActivity {
 
         role = getIntent().getStringExtra(ROLE_TAG);
         gameControler = GameControler.getInstance();
-        game = new Game(60000, 'm');
+        game = new Game(60000);
         gameControler.setGame(game);
         nickname = getIntent().getStringExtra(NICKNAME);
         gameControler.clearPlayerList();
@@ -139,8 +142,12 @@ public class WifiGameActivity extends AppCompatActivity {
         answerEditText = findViewById(R.id.wifi_answerEt);
         timerTv = findViewById(R.id.wifiTimerTv);
         timerPb = findViewById(R.id.wifiTimerPb);
+        letterTv = findViewById(R.id.wifi_letter);
 
         if(role.equals(SERVER)) {
+            letter = randomChar();
+            game.setLetter(letter);
+            letterTv.setText(String.valueOf(game.getLetter()).toUpperCase());
             Thread socketServerThread = new Thread(new SocketServerThread());
             socketServerThread.start();
         } else if(role.equals(CLIENT)) {
@@ -174,10 +181,7 @@ public class WifiGameActivity extends AppCompatActivity {
                         Player opponent = new Player(nick);
                         opponent.setIpAddress(socket.getInetAddress().toString());
                         gameControler.addPlayer(opponent);
-                        replyMsg = "you are added as my opponent";
-                    } else if(messageFromClient.equals(CORRECTANSWER)) {
-                        increaseScore(socket.getInetAddress().toString());
-                        replyMsg = CORRECTANSWER;
+                        replyMsg = String.valueOf(letter);
                     }
                     dataOutputStream.writeUTF(replyMsg);
                     final String tmp = replyMsg;
@@ -202,7 +206,7 @@ public class WifiGameActivity extends AppCompatActivity {
         }
     }
 
-    private static class MyClientTask extends AsyncTask<Void, Void, Void> {
+    private class MyClientTask extends AsyncTask<Void, Void, Void> {
 
         String dstAddress = ipAddress;
         int dstPort = SocketServerPORT;
@@ -239,6 +243,14 @@ public class WifiGameActivity extends AppCompatActivity {
             }
             return null;
         }
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            if(msgToServer.contains(HEREISMYNICK)) {
+                char tmp = response.charAt(0);
+                game.setLetter(tmp);
+                letterTv.setText(response.toUpperCase());
+            }
+        }
     }
 
 
@@ -257,22 +269,18 @@ public class WifiGameActivity extends AppCompatActivity {
                     String answer = editText.getText().toString().toLowerCase();
                     switch (sectionNumber) {
                         case 1:
-                            if(possibleCountries.contains(answer)) {
+                            if(possibleCountries.contains(answer) && !player.getAnswers("countries").contains(answer) && checkLetter(answer)) {
                                 Toast.makeText(rootView.getContext(), "Correct", Toast.LENGTH_SHORT).show();
                                 player.getAnswers("countries").add(answer);
                                 increaseScore(player);
                                 Log.d("Score",String.valueOf(player.getScore()));
                                 updateTextView(player.getAnswers("countries"), textView);
-                                if(role.equals(CLIENT)) {
-                                    MyClientTask myClientTask = new MyClientTask(CORRECTANSWER);
-                                    myClientTask.execute();
-                                }
                             }
                             else
                                 Toast.makeText(rootView.getContext(), "Incorrect", Toast.LENGTH_SHORT).show();
                             break;
                         case 2:
-                            if(possibleAnimals.contains(answer)) {
+                            if(possibleAnimals.contains(answer) && !player.getAnswers("animals").contains(answer) && checkLetter(answer)) {
                                 Toast.makeText(rootView.getContext(), "Correct", Toast.LENGTH_SHORT).show();
                                 player.getAnswers("animals").add(answer);
                                 increaseScore(player);
@@ -283,7 +291,7 @@ public class WifiGameActivity extends AppCompatActivity {
                                 Toast.makeText(rootView.getContext(), "Incorrect", Toast.LENGTH_SHORT).show();
                             break;
                         case 3:
-                            if(possibleMountains.contains(answer)) {
+                            if(possibleMountains.contains(answer) && !player.getAnswers("mountains").contains(answer) && checkLetter(answer)) {
                                 Toast.makeText(rootView.getContext(), "Correct", Toast.LENGTH_SHORT).show();
                                 player.getAnswers("mountains").add(answer);
                                 increaseScore(player);
@@ -294,7 +302,6 @@ public class WifiGameActivity extends AppCompatActivity {
                                 Toast.makeText(rootView.getContext(), "Incorrect", Toast.LENGTH_SHORT).show();
                             break;
                         }
-
                 }
 
                 private boolean checkLetter(String answer) {
@@ -321,10 +328,6 @@ public class WifiGameActivity extends AppCompatActivity {
 
     private static void increaseScore(Player player) {
         gameControler.increaseScore(player, 1);
-    }
-
-    private void increaseScore(String ipAddress) {
-        gameControler.increaseScore(ipAddress, 1);
     }
 
     @Override
@@ -448,11 +451,7 @@ public class WifiGameActivity extends AppCompatActivity {
                     MyClientTask myClientTask = new MyClientTask(SCORE + gameControler.getCurrentPlayer().getScore());
                     myClientTask.execute();
                 }
-                Log.d("TIMER","DONE");
                 Intent finishedGame = new Intent(WifiGameActivity.this, tmpWifiFinishActivity.class);
-                GameControler.GameStatus gameStatus = gameControler.getResults();
-                Log.d("GameStatus", String.valueOf(gameStatus));
-                finishedGame.putExtra("GAMESTATUS",gameStatus);
                 finishedGame.putExtra(ROLE_TAG, role);
                 if(role.equals(CLIENT)) finishedGame.putExtra(IPADDR, ipAddress);
                 if(serverSocket != null) try {  serverSocket.close(); } catch (IOException e) { e.printStackTrace(); }
@@ -492,6 +491,10 @@ public class WifiGameActivity extends AppCompatActivity {
             ip += "Something went wrong!" + e.toString() + "\n";
         }
         return ip;
+    }
+
+    private char randomChar() {
+        return (char) ((new Random()).nextInt(26) + 'a');
     }
 
 }

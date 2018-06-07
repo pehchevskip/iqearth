@@ -18,12 +18,11 @@ public class Game {
         players = new ArrayList<>();
     }
 
-    public Game(char letter) {
+    public Game(int time, char letter) {
+        this.time = time;
         this.letter = letter;
         players = new ArrayList<>();
     }
-
-
 
     public Game(int time) {
         this.time = time;

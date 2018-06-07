@@ -25,7 +25,7 @@ public class tmpWifiFinishActivity extends AppCompatActivity {
     private static final String NOTSTARTED = "notStarted";
     private static final String CLIENT = "client";
     private static final String SERVER = "server";
-    private static final String SCORE = "SCORE";
+    private static final String SCORE = "score";
 
     private String role;
     private String ipAddress;
@@ -48,7 +48,7 @@ public class tmpWifiFinishActivity extends AppCompatActivity {
         resultTv.setText("My score: " + me.getScore() + "\n\n");
 
         if(role.equals(SERVER)) {
-            listOtherPlayers();
+            updateScores();
             Thread serverThread = new Thread(new SocketServerThread());
             serverThread.start();
         } else if(role.equals(CLIENT)) {
@@ -130,10 +130,10 @@ public class tmpWifiFinishActivity extends AppCompatActivity {
         }
     }
 
-    private void listOtherPlayers() {
+    private void updateScores() {
         List<Player> opponents = gameControler.getOpponents();
         final StringBuilder sb = new StringBuilder();
-        sb.append(resultTv.getText());
+        sb.append("My score: " + me.getScore() + "\n\n");
         for(Player player : opponents)
             sb.append(player.getNickname() + ": " + player.getScore() + '\n');
         runOnUiThread(new Runnable() {
@@ -142,15 +142,5 @@ public class tmpWifiFinishActivity extends AppCompatActivity {
                 resultTv.setText(sb.toString());
             }
         });
-    }
-
-    private void updateScores() {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                resultTv.setText("My score: " + me.getScore() + "\n\n");
-            }
-        });
-        listOtherPlayers();
     }
 }
