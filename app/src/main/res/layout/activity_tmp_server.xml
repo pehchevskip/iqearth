@@ -35,8 +35,7 @@
         <TextView
             android:id="@+id/connectedDevicesTv"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Nickname (255.255.255.255)"/>
+            android:layout_height="wrap_content" />
     </ScrollView>
 
     <Button

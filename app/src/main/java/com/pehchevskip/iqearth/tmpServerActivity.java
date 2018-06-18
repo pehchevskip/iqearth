@@ -1,23 +1,15 @@
 package com.pehchevskip.iqearth;
 
-import android.content.Context;
 import android.content.Intent;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import com.pehchevskip.iqearth.ipAdressToHash.ipAdressHashCode;
 import com.pehchevskip.iqearth.model.Game;
 import com.pehchevskip.iqearth.model.Player;
-import com.pehchevskip.iqearth.model.WifiDevice;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -161,7 +153,7 @@ public class tmpServerActivity extends AppCompatActivity {
     private void addConnectedDevice(String nickname, String ip) {
         if(connectedIps.contains(ip)) return;
         String tmp = connectedDevicesTv.getText().toString();
-        tmp += '\n' + nickname + " (" + ip + ')';
+        tmp += nickname + " (" + ip + ')' + '\n';
         connectedDevicesTv.setText(tmp);
         connectedIps.add(ip);
     }

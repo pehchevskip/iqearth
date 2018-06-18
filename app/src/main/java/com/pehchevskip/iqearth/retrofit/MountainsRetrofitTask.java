@@ -3,7 +3,9 @@ package com.pehchevskip.iqearth.retrofit;
 import android.annotation.SuppressLint;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.widget.Button;
 
+import com.pehchevskip.iqearth.model.MyIntClass;
 import com.pehchevskip.iqearth.persistance.AppDatabase;
 import com.pehchevskip.iqearth.persistance.entities.EntityMountain;
 
@@ -23,14 +25,18 @@ public class MountainsRetrofitTask extends AsyncTask<Void, Void, List<String>> {
 
     private MountainsApi service;
     private AppDatabase database;
+    private MyIntClass countEntities;
+    private Button submitBt;
 
-    public MountainsRetrofitTask(AppDatabase database) {
+    public MountainsRetrofitTask(AppDatabase database, MyIntClass countEntities, Button submitBt) {
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("https://raw.githubusercontent.com/petarpehchevski/iqearth/master/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         this.service = retrofit.create(MountainsApi.class);
         this.database = database;
+        this.countEntities = countEntities;
+        this.submitBt = submitBt;
     }
 
     @Override
@@ -50,6 +56,13 @@ public class MountainsRetrofitTask extends AsyncTask<Void, Void, List<String>> {
         List<EntityMountain> mountainList = new ArrayList<>();
         for(String string : strings) {
             mountainList.add(new EntityMountain(string));
+        }
+        countEntities.increaseTries();
+        if(!strings.isEmpty()) {
+            countEntities.increase(1);
+        }
+        if(countEntities.getValue() >= 2) {
+            submitBt.setEnabled(true);
         }
         insertMountains(mountainList);
     }

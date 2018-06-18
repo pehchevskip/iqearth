@@ -15,6 +15,8 @@ public class ipAdressHashCode {
             }
             sum=(int)ipAdress.charAt(i);
             sum+=1;
+//            sum = Integer.parseInt(String.valueOf(ipAdress.charAt(i)));
+//            sum += 'b';
             builder.append((char)sum);
         }
         ipAdressHash=builder.toString();
@@ -30,6 +32,7 @@ public class ipAdressHashCode {
             }
             sum=(int)ipAdress.charAt(i);
             sum-=1;
+//            sum -= 'b';
             builder.append((char)sum);
         }
         String ipAddress=builder.toString();

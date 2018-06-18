@@ -88,7 +88,7 @@ public class WifiGameActivity extends AppCompatActivity {
     private static String nickname;
 
     private Button enterButton;
-    private EditText answerEditText;
+//    private EditText answerEditText;
     private TextView timerTv, letterTv;
     private ProgressBar timerPb;
 
@@ -139,7 +139,7 @@ public class WifiGameActivity extends AppCompatActivity {
         getMountainsFromDb();
 
         enterButton = findViewById(R.id.wifi_enterBt);
-        answerEditText = findViewById(R.id.wifi_answerEt);
+//        answerEditText = findViewById(R.id.wifi_answerEt);
         timerTv = findViewById(R.id.wifiTimerTv);
         timerPb = findViewById(R.id.wifiTimerPb);
         letterTv = findViewById(R.id.wifi_letter);
@@ -275,6 +275,7 @@ public class WifiGameActivity extends AppCompatActivity {
                                 increaseScore(player);
                                 Log.d("Score",String.valueOf(player.getScore()));
                                 updateTextView(player.getAnswers("countries"), textView);
+                                clearEditText(editText);
                             }
                             else
                                 Toast.makeText(rootView.getContext(), "Incorrect", Toast.LENGTH_SHORT).show();
@@ -286,6 +287,7 @@ public class WifiGameActivity extends AppCompatActivity {
                                 increaseScore(player);
                                 Log.d("Score",String.valueOf(player.getScore()));
                                 updateTextView(player.getAnswers("animals"), textView);
+                                clearEditText(editText);
                             }
                             else
                                 Toast.makeText(rootView.getContext(), "Incorrect", Toast.LENGTH_SHORT).show();
@@ -297,6 +299,7 @@ public class WifiGameActivity extends AppCompatActivity {
                                 increaseScore(player);
                                 Log.d("Score",String.valueOf(player.getScore()));
                                 updateTextView(player.getAnswers("mountains"), textView);
+                                clearEditText(editText);
                             }
                             else
                                 Toast.makeText(rootView.getContext(), "Incorrect", Toast.LENGTH_SHORT).show();
@@ -333,6 +336,7 @@ public class WifiGameActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        timer.cancel();
         if(serverSocket != null) {
             try {
                 serverSocket.close();
@@ -388,6 +392,71 @@ public class WifiGameActivity extends AppCompatActivity {
         }
     }
 
+    private void startTimer() {
+        timer = new CountDownTimer(gameControler.getGame().getTime(),1000) {
+            @Override
+            public void onTick(long l) {
+                timerTv.setText(l/1000 + "s");
+                timerPb.setProgress((int) (l/1000));
+            }
+            @Override
+            public void onFinish() {
+                timerTv.setText("0s");
+                timerPb.setProgress(0);
+                if(role.equals(CLIENT)) {
+                    MyClientTask myClientTask = new MyClientTask(SCORE + gameControler.getCurrentPlayer().getScore());
+                    myClientTask.execute();
+                }
+                Intent finishedGame = new Intent(WifiGameActivity.this, tmpWifiFinishActivity.class);
+                finishedGame.putExtra(ROLE_TAG, role);
+                if(role.equals(CLIENT)) finishedGame.putExtra(IPADDR, ipAddress);
+                if(serverSocket != null) try {  serverSocket.close(); } catch (IOException e) { e.printStackTrace(); }
+                startActivity(finishedGame);
+            }
+        }.start();
+    }
+
+    private static void updateTextView(Set<String> answers, TextView textView) {
+        StringBuilder sb = new StringBuilder();
+        for(String answer : answers)
+            sb.append(answer + ", ");
+        textView.setText(sb.toString());
+    }
+
+    private static void clearEditText(EditText editText) {
+        editText.setText("");
+    }
+
+    private void sendMyNickToServer(String nickname) {
+        MyClientTask myClientTask = new MyClientTask(HEREISMYNICK + nickname);
+        myClientTask.execute();
+    }
+
+    private String getIpAddress() {
+        String ip = "";
+        try {
+            Enumeration<NetworkInterface> enumNetworkInterface = NetworkInterface.getNetworkInterfaces();
+            while (enumNetworkInterface.hasMoreElements()) {
+                NetworkInterface networkInterface = enumNetworkInterface.nextElement();
+                Enumeration<InetAddress> enumInetAddress = networkInterface.getInetAddresses();
+                while (enumInetAddress.hasMoreElements()) {
+                    InetAddress inetAddress = enumInetAddress.nextElement();
+                    if(inetAddress.isSiteLocalAddress()) {
+                        ip += inetAddress.getHostAddress();
+                    }
+                }
+            }
+        } catch (SocketException e) {
+            e.printStackTrace();
+            ip += "Something went wrong!" + e.toString() + "\n";
+        }
+        return ip;
+    }
+
+    private char randomChar() {
+        return (char) ((new Random()).nextInt(26) + 'a');
+    }
+
     @SuppressLint("StaticFieldLeak")
     private void getMountainsFromDb() {
         new AsyncTask<Void, Void, List<EntityMountain>>() {
@@ -434,67 +503,6 @@ public class WifiGameActivity extends AppCompatActivity {
                     possibleCountries.add(entityCountry.getName().toLowerCase());
             }
         }.execute();
-    }
-
-    private void startTimer() {
-        timer = new CountDownTimer(gameControler.getGame().getTime(),1000) {
-            @Override
-            public void onTick(long l) {
-                timerTv.setText(l/1000 + "s");
-                timerPb.setProgress((int) (l/1000));
-            }
-            @Override
-            public void onFinish() {
-                timerTv.setText("0");
-                timerPb.setProgress(0);
-                if(role.equals(CLIENT)) {
-                    MyClientTask myClientTask = new MyClientTask(SCORE + gameControler.getCurrentPlayer().getScore());
-                    myClientTask.execute();
-                }
-                Intent finishedGame = new Intent(WifiGameActivity.this, tmpWifiFinishActivity.class);
-                finishedGame.putExtra(ROLE_TAG, role);
-                if(role.equals(CLIENT)) finishedGame.putExtra(IPADDR, ipAddress);
-                if(serverSocket != null) try {  serverSocket.close(); } catch (IOException e) { e.printStackTrace(); }
-                startActivity(finishedGame);
-            }
-        }.start();
-    }
-
-    private static void updateTextView(Set<String> answers, TextView textView) {
-        StringBuilder sb = new StringBuilder();
-        for(String answer : answers)
-            sb.append(answer + ", ");
-        textView.setText(sb.toString());
-    }
-
-    private void sendMyNickToServer(String nickname) {
-        MyClientTask myClientTask = new MyClientTask(HEREISMYNICK + nickname);
-        myClientTask.execute();
-    }
-
-    private String getIpAddress() {
-        String ip = "";
-        try {
-            Enumeration<NetworkInterface> enumNetworkInterface = NetworkInterface.getNetworkInterfaces();
-            while (enumNetworkInterface.hasMoreElements()) {
-                NetworkInterface networkInterface = enumNetworkInterface.nextElement();
-                Enumeration<InetAddress> enumInetAddress = networkInterface.getInetAddresses();
-                while (enumInetAddress.hasMoreElements()) {
-                    InetAddress inetAddress = enumInetAddress.nextElement();
-                    if(inetAddress.isSiteLocalAddress()) {
-                        ip += inetAddress.getHostAddress();
-                    }
-                }
-            }
-        } catch (SocketException e) {
-            e.printStackTrace();
-            ip += "Something went wrong!" + e.toString() + "\n";
-        }
-        return ip;
-    }
-
-    private char randomChar() {
-        return (char) ((new Random()).nextInt(26) + 'a');
     }
 
 }

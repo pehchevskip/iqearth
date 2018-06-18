@@ -3,10 +3,9 @@ package com.pehchevskip.iqearth.retrofit;
 import android.annotation.SuppressLint;
 import android.os.AsyncTask;
 import android.util.Log;
-import android.view.View;
-import android.widget.TextView;
+import android.widget.Button;
 
-import com.pehchevskip.iqearth.R;
+import com.pehchevskip.iqearth.model.MyIntClass;
 import com.pehchevskip.iqearth.model.api.Country;
 import com.pehchevskip.iqearth.persistance.AppDatabase;
 import com.pehchevskip.iqearth.persistance.entities.EntityCity;
@@ -28,14 +27,18 @@ public class CountryRetrofitTask extends AsyncTask<Void, Void, List<Country>> {
 
     private CountryApi service;
     private AppDatabase database;
+    private MyIntClass countEntities;
+    private Button submitBt;
 
-    public CountryRetrofitTask(AppDatabase db) {
+    public CountryRetrofitTask(AppDatabase db, MyIntClass countEntities, Button submitBt) {
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("https://restcountries.eu/rest/v2/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         this.service = retrofit.create(CountryApi.class);
         this.database = db;
+        this.countEntities = countEntities;
+        this.submitBt = submitBt;
     }
 
     @Override
@@ -57,6 +60,13 @@ public class CountryRetrofitTask extends AsyncTask<Void, Void, List<Country>> {
         for(Country country : countries) {
             countriesList.add(new EntityCountry(country.name));
             citiesList.add(new EntityCity(country.capital));
+        }
+        countEntities.increaseTries();
+        if(!countries.isEmpty()) {
+            countEntities.increase(1);
+        }
+        if(countEntities.getValue() >= 2) {
+            submitBt.setEnabled(true);
         }
         insertCountries(countriesList);
         insertCities(citiesList);

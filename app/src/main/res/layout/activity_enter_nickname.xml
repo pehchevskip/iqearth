@@ -5,11 +5,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".EnterNickname">
+    tools:context=".EnterNickname"
+    android:focusableInTouchMode="true" >
+
     <TextView
+        android:id="@+id/enterNicknameTv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Enter your Nickname:"/>
+        android:text="@string/enter_nickname"/>
 
     <EditText
         android:id="@+id/nickname"
@@ -19,11 +22,11 @@
 
     <Button
         android:id="@+id/submit"
+        android:enabled="false"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Submit"
         />
-
 
 
 </android.support.v7.widget.LinearLayoutCompat>
