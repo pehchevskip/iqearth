@@ -81,8 +81,8 @@ public class tmpWifiFinishActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        finishAffinity();
         Intent intent = new Intent(this, EnterNickname.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(intent);
     }
 
