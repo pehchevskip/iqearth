@@ -26,6 +26,7 @@
         android:layout_marginTop="20dp"
         android:layout_marginBottom="20dp"
         android:background="@drawable/edittext_style"
+        android:maxLines="1"
         android:textAlignment="center"
         android:textColor="@android:color/holo_purple"
         android:hint="@string/enter_the_token_here"
