@@ -1,6 +1,10 @@
 package com.pehchevskip.iqearth;
 
+import android.annotation.TargetApi;
+import android.content.Intent;
 import android.os.AsyncTask;
+import android.os.Build;
+import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.TextView;
@@ -58,6 +62,28 @@ public class tmpWifiFinishActivity extends AppCompatActivity {
             ipAddress = getIntent().getStringExtra(IPADDR);
             new MyClientTask().execute();
         }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if(serverSocket != null) {
+            try {
+                serverSocket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        finishAffinity();
+        Intent intent = new Intent(this, EnterNickname.class);
+        startActivity(intent);
     }
 
     private class SocketServerThread extends Thread {
@@ -136,7 +162,7 @@ public class tmpWifiFinishActivity extends AppCompatActivity {
             } else if(response.equals("Loss")) {
                 statusTv.setTextColor(getResources().getColor(R.color.holo_red));
             }
-            statusTv.setText(resultTv.getText() + response);
+            statusTv.setText(response);
         }
     }
 

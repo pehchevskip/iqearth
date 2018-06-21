@@ -1,11 +1,15 @@
 package com.pehchevskip.iqearth;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.pehchevskip.iqearth.ipAddressToHash.ipAddressHashCode;
 import com.pehchevskip.iqearth.model.Game;
@@ -35,6 +39,9 @@ public class tmpServerActivity extends AppCompatActivity {
     TextView infoip, connectedDevicesTv;
 //    TextView msg;
     Button startButton;
+    ImageButton copyButton;
+    ImageButton shareButton;
+
     public ipAddressHashCode coder;
     String message = "";
     ServerSocket serverSocket;
@@ -54,6 +61,10 @@ public class tmpServerActivity extends AppCompatActivity {
         connectedDevicesTv = findViewById(R.id.connectedDevicesTv);
         startButton = findViewById(R.id.serverStartBt);
         startButton.setOnClickListener(startButtonOnClickListener);
+        copyButton = findViewById(R.id.wifi_copyBt);
+        copyButton.setOnClickListener(copyButtonOnClickListener);
+        shareButton = findViewById(R.id.wifi_shareBt);
+        shareButton.setOnClickListener(shareButtonOnClickListener);
 
         nickname = getIntent().getStringExtra(NICKNAME);
         connectedIps = new ArrayList<>();
@@ -71,7 +82,34 @@ public class tmpServerActivity extends AppCompatActivity {
             if(serverSocket != null) {
                 try { serverSocket.close(); } catch (IOException e) { e.printStackTrace(); }
             }
-            startActivity(startGame);
+            if(!connectedIps.isEmpty()){
+                startActivity(startGame);
+            } else {
+                Toast.makeText(tmpServerActivity.this, "No connected players!", Toast.LENGTH_SHORT).show();
+            }
+        }
+    };
+
+    View.OnClickListener copyButtonOnClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+            ClipData clip = ClipData.newPlainText(infoip.getText(), infoip.getText());
+            if (clipboard != null) {
+                clipboard.setPrimaryClip(clip);
+            }
+        }
+    };
+
+    View.OnClickListener shareButtonOnClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            String body = infoip.getText().toString();
+            Intent sharingIntent = new Intent(Intent.ACTION_SEND);
+            sharingIntent.setType("text/plain");
+            sharingIntent.putExtra(Intent.EXTRA_SUBJECT, "Token");
+            sharingIntent.putExtra(Intent.EXTRA_TEXT, body);
+            startActivity(Intent.createChooser(sharingIntent, "Token"));
         }
     };
 

@@ -65,7 +65,7 @@ public class ServerOrClientActivity extends AppCompatActivity {
             createBtn.setEnabled(false);
             joinBtn.setEnabled(false);
         } else {
-            Toast.makeText(this, "Connected to wifi!", Toast.LENGTH_SHORT).show();
+//            Toast.makeText(this, "Connected to wifi!", Toast.LENGTH_SHORT).show();
             createBtn.setEnabled(true);
             joinBtn.setEnabled(true);
         }

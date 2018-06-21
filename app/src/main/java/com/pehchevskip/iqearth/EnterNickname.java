@@ -87,6 +87,8 @@ public class EnterNickname extends AppCompatActivity {
                     player=new Player(nickname);
                     gameControler.addPlayer(player);
                     startActivity(start_activity);
+                } else {
+                    Toast.makeText(EnterNickname.this, "Please enter your name!", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -144,14 +146,14 @@ public class EnterNickname extends AppCompatActivity {
             protected void onPostExecute(List<EntityCountry> entityCountries) {
                 super.onPostExecute(entityCountries);
                 if(entityCountries.isEmpty()) {
-                    Toast.makeText(EnterNickname.this, "No countries in db found!", Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(EnterNickname.this, "No countries in db found!", Toast.LENGTH_SHORT).show();
                     getAndInsertCountriesInDb();
                 } else {
                     countEntities++;
                     if(countEntities >= 3) {
                         mButtonSubmit.setEnabled(true);
                     }
-                    Toast.makeText(EnterNickname.this, entityCountries.size() + " countries", Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(EnterNickname.this, entityCountries.size() + " countries", Toast.LENGTH_SHORT).show();
                 }
             }
         }.execute();
@@ -167,14 +169,14 @@ public class EnterNickname extends AppCompatActivity {
             @Override
             protected void onPostExecute(List<EntityCity> entityCities) {
                 if (entityCities.isEmpty()) {
-                    Toast.makeText(EnterNickname.this, "No cities in db found!", Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(EnterNickname.this, "No cities in db found!", Toast.LENGTH_SHORT).show();
                     getAndInsertCountriesInDb();
                 } else {
                     countEntities++;
                     if(countEntities >= 3) {
                         mButtonSubmit.setEnabled(true);
                     }
-                    Toast.makeText(EnterNickname.this, entityCities.size() + " cities", Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(EnterNickname.this, entityCities.size() + " cities", Toast.LENGTH_SHORT).show();
                 }
             }
         }.execute();
@@ -191,14 +193,14 @@ public class EnterNickname extends AppCompatActivity {
             protected void onPostExecute(List<EntityAnimal> entityAnimals) {
                 super.onPostExecute(entityAnimals);
                 if(entityAnimals.isEmpty()){
-                    Toast.makeText(EnterNickname.this, "No animals in db found!", Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(EnterNickname.this, "No animals in db found!", Toast.LENGTH_SHORT).show();
                     getAndInsertAnimalsInDb();
                 } else {
                     countEntities++;
                     if(countEntities >= 3) {
                         mButtonSubmit.setEnabled(true);
                     }
-                    Toast.makeText(EnterNickname.this, entityAnimals.size() + " animals", Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(EnterNickname.this, entityAnimals.size() + " animals", Toast.LENGTH_SHORT).show();
                 }
             }
         }.execute();
@@ -215,14 +217,14 @@ public class EnterNickname extends AppCompatActivity {
             protected void onPostExecute(List<EntityMountain> entityMountains) {
                 super.onPostExecute(entityMountains);
                 if(entityMountains.isEmpty()) {
-                    Toast.makeText(EnterNickname.this, "No mountains in db found!", Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(EnterNickname.this, "No mountains in db found!", Toast.LENGTH_SHORT).show();
                     getAndInsertMountainsInDb();
                 } else {
                     countEntities++;
                     if(countEntities >= 3) {
                         mButtonSubmit.setEnabled(true);
                     }
-                    Toast.makeText(EnterNickname.this, entityMountains.size() + " mountains", Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(EnterNickname.this, entityMountains.size() + " mountains", Toast.LENGTH_SHORT).show();
                 }
             }
         }.execute();

@@ -116,6 +116,7 @@ public class WifiGameActivity extends AppCompatActivity {
 
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
+        mViewPager.setOffscreenPageLimit(4); // saves the data on tab change
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
@@ -273,7 +274,8 @@ public class WifiGameActivity extends AppCompatActivity {
             button.setOnClickListener(new Button.OnClickListener(){
                 @Override
                 public void onClick(View view) {
-                    String answer = editText.getText().toString().toLowerCase();
+                    String answer = editText.getText().toString().toLowerCase().trim();
+                    String origAnswer = editText.getText().toString().trim();
                     switch (sectionNumber) {
                         case 1:
                             if(possibleCountries.contains(answer) && !player.getAnswers("countries").contains(answer) && checkLetter(answer)) {
@@ -281,7 +283,8 @@ public class WifiGameActivity extends AppCompatActivity {
                                 player.getAnswers("countries").add(answer);
                                 increaseScore(player);
                                 Log.d("Score",String.valueOf(player.getScore()));
-                                updateTextView(player.getAnswers("countries"), textView);
+//                                updateTextView(player.getAnswers("countries"), textView);
+                                updateTextView(origAnswer, textView);
                                 clearEditText(editText);
                             }
                             else
@@ -293,7 +296,8 @@ public class WifiGameActivity extends AppCompatActivity {
                                 player.getAnswers("cities").add(answer);
                                 increaseScore(player);
                                 Log.d("Score",String.valueOf(player.getScore()));
-                                updateTextView(player.getAnswers("cities"), textView);
+//                                updateTextView(player.getAnswers("cities"), textView);
+                                updateTextView(origAnswer, textView);
                                 clearEditText(editText);
                             }
                             else
@@ -305,7 +309,8 @@ public class WifiGameActivity extends AppCompatActivity {
                                 player.getAnswers("animals").add(answer);
                                 increaseScore(player);
                                 Log.d("Score",String.valueOf(player.getScore()));
-                                updateTextView(player.getAnswers("animals"), textView);
+//                                updateTextView(player.getAnswers("animals"), textView);
+                                updateTextView(origAnswer, textView);
                                 clearEditText(editText);
                             }
                             else
@@ -317,7 +322,8 @@ public class WifiGameActivity extends AppCompatActivity {
                                 player.getAnswers("mountains").add(answer);
                                 increaseScore(player);
                                 Log.d("Score",String.valueOf(player.getScore()));
-                                updateTextView(player.getAnswers("mountains"), textView);
+//                                updateTextView(player.getAnswers("mountains"), textView);
+                                updateTextView(origAnswer, textView);
                                 clearEditText(editText);
                             }
                             else
@@ -436,10 +442,11 @@ public class WifiGameActivity extends AppCompatActivity {
         }.start();
     }
 
-    private static void updateTextView(List<String> answers, TextView textView) {
+    private static void updateTextView(String answer, TextView textView) {
         StringBuilder sb = new StringBuilder();
-        for(String answer : answers)
-            sb.append(answer + ", ");
+//        for(String answer : answers)
+//            sb.append(answer + ", ");
+        sb.append(textView.getText()).append(answer).append(", ");
         textView.setText(sb.toString());
     }
 

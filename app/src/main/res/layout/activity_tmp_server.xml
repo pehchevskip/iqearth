@@ -25,15 +25,43 @@
         android:textAlignment="center"
         android:textSize="18sp"/>
 
-    <TextView
-        android:id="@+id/infoipTv"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
         android:layout_marginBottom="20dp"
-        android:text="not present"
-        android:textAlignment="center"
-        android:textSize="25sp"
-        android:textColor="@android:color/holo_purple"/>
+        android:orientation="horizontal"
+        android:paddingRight="10dp"
+        android:paddingEnd="10dp">
+        <TextView
+            android:id="@+id/infoipTv"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center|end"
+            android:text="@string/not_present"
+            android:textAlignment="textEnd"
+            android:textSize="25sp"
+            android:textColor="@android:color/holo_purple"
+            android:layout_weight="10"
+            android:layout_marginEnd="30dp"
+            android:layout_marginRight="30dp" />
+        <ImageButton
+            android:id="@+id/wifi_copyBt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_content_copy_black_24dp"
+            android:background="@android:color/transparent"
+            android:layout_gravity="center"
+            android:layout_weight="45"/>
+        <ImageButton
+            android:id="@+id/wifi_shareBt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_share_black_24dp"
+            android:background="@android:color/transparent"
+            android:layout_gravity="center"
+            android:layout_weight="45"/>
+    </LinearLayout>
 
     <!--<TextView-->
         <!--android:id="@+id/msgTv"-->
