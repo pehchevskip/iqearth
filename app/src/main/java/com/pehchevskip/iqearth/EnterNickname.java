@@ -80,7 +80,7 @@ public class EnterNickname extends AppCompatActivity {
                         start_activity = new Intent(EnterNickname.this,WifiGameActivity.class);
                         start_activity.putExtra(ROLE_TAG, ONEPLAYER);
                     } else if(twoPlayersRb.isChecked()) {
-                        start_activity = new Intent(EnterNickname.this,StartActivity.class);
+                        start_activity = new Intent(EnterNickname.this,ListDevicesActivity.class);
                     } else {
                         start_activity = new Intent(EnterNickname.this,ServerOrClientActivity.class);
                     }
