@@ -33,6 +33,9 @@
             android:name=".WifiGameActivity"
             android:label="@string/title_activity_wifi_game" />
         <activity android:name=".tmpWifiFinishActivity" />
+            android:label="@string/title_activity_wifi_game"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity android:name=".ListDevicesActivity"></activity>
     </application>
 
 </manifest>

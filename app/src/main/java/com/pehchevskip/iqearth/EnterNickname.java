@@ -1,6 +1,7 @@
 package com.pehchevskip.iqearth;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.arch.persistence.room.Room;
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -41,7 +42,7 @@ public class EnterNickname extends AppCompatActivity {
     RadioButton twoPlayersRb;
     RadioButton morePlayersRb;
 
-    // Nickame of player
+    // Nickname of player
     String nickname;
 
     // Game controler

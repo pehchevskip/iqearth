@@ -28,9 +28,10 @@ public class BluetoothControler {
     static final int STATE_MESSAGE_RECEIVED=5;
     static final BluetoothAdapter  mBluetoothAdapter =BluetoothAdapter.getDefaultAdapter();
     static Handler handler;
-   public static InnerSendReceive sendReceive;
-    public InnerServerClass serverClass;
-    public InnerClientClass clientClass;
+    public BluetoothDevice bdDevice;
+   public  ManageConnectThread sendReceive;
+    public ServerConnectThread serverClass;
+    //public ConnectThread clientClass;
     public static BluetoothControler controler;
     public BluetoothControler(){
 
@@ -43,7 +44,12 @@ public class BluetoothControler {
         }
         return controler;
     }
-
+    public void setBluetoothDevice(BluetoothDevice bd){
+        this.bdDevice=bd;
+    }
+    public BluetoothDevice getBdDevice(){
+        return bdDevice;
+    }
     //classes for controler
    public static class InnerServerClass extends Thread{
 
@@ -90,8 +96,8 @@ public class BluetoothControler {
                         message.what=STATE_CONNECTED;
                         handler.sendMessage(message);
                         //send receive
-                        sendReceive=new InnerSendReceive(socket);
-                        sendReceive.start();
+                        //sendReceive=new InnerSendReceive(socket);
+                        //sendReceive.start();
                         break;
                     }
                 }
@@ -122,8 +128,8 @@ public class BluetoothControler {
                 Message msg=Message.obtain();
                 msg.what=STATE_CONNECTED;
                 handler.sendMessage(msg);
-                sendReceive=new InnerSendReceive(socket);
-                sendReceive.start();
+                //sendReceive=new InnerSendReceive(socket);
+                //sendReceive.start();
             }catch (IOException e){
                 Log.d(TAG,"Coudnt connect() in client thread",e);
                 Message msg=Message.obtain();
