@@ -35,6 +35,8 @@ public class ListDevicesActivity extends AppCompatActivity {
     //Nickname
     private String nickname;
 
+    private boolean isReceiver3Registered = false;
+
     // Create a BroadcastReceiver for ACTION_STATE_CHANGED
     private final BroadcastReceiver mbroadcastReceiver1 = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
@@ -160,12 +162,13 @@ public class ListDevicesActivity extends AppCompatActivity {
                     bluetoothAdapter.startDiscovery();
                     IntentFilter intentFilter=new IntentFilter(BluetoothDevice.ACTION_FOUND);
                     registerReceiver(mbroadcastReceiver3,intentFilter);
+                    isReceiver3Registered = true;
                 }
                 if(!bluetoothAdapter.isDiscovering()){
                     bluetoothAdapter.startDiscovery();
                     IntentFilter intentFilter=new IntentFilter(BluetoothDevice.ACTION_FOUND);
                     registerReceiver(mbroadcastReceiver3,intentFilter);
-
+                    isReceiver3Registered = true;
                 }
             }
         });
@@ -210,7 +213,9 @@ public class ListDevicesActivity extends AppCompatActivity {
         super.onDestroy();
         unregisterReceiver(mbroadcastReceiver1);
         unregisterReceiver(mbroadcastReceiver2);
-        unregisterReceiver(mbroadcastReceiver3);
+        if(isReceiver3Registered) {
+            unregisterReceiver(mbroadcastReceiver3);
+        }
     }
 
     private void enableBT() {
