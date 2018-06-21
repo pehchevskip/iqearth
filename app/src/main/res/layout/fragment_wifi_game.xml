@@ -33,6 +33,7 @@
             android:maxLines="1"
             android:inputType="text"
             android:textSize="22sp"
+            android:background="@drawable/edittext_style"
             android:paddingLeft="10dp"
             android:hint="Type your answer here..."
             android:layout_above="@id/wifi_enterBt" />
