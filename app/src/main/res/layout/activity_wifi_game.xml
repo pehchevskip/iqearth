@@ -88,6 +88,7 @@
             android:textSize="50sp" />
 
         <RelativeLayout
+            android:id="@+id/relativeinwifigame"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
@@ -112,6 +113,11 @@
                 android:progress="60"
                 android:max="60"/>
         </RelativeLayout>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@android:color/darker_gray"
+            android:layout_below="@id/relativeinwifigame"/>
     </RelativeLayout>
 
 </RelativeLayout>
