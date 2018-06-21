@@ -27,10 +27,11 @@
         android:layout_marginBottom="20dp"
         android:background="@drawable/edittext_style"
         android:maxLines="1"
+        android:inputType="text"
         android:textAlignment="center"
         android:textColor="@android:color/holo_purple"
         android:hint="@string/enter_the_token_here"
-        android:textSize="22sp"/>
+        android:textSize="22sp" />
 
     <Button
         android:id="@+id/connectBt"
