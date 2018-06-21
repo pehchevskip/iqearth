@@ -1,12 +1,17 @@
 package com.pehchevskip.iqearth;
 
+import android.annotation.TargetApi;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothServerSocket;
-import android.bluetooth.BluetoothSocket;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.RequiresApi;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -19,24 +24,27 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.pehchevskip.iqearth.bluetooth.BluetoothControler;
+import com.pehchevskip.iqearth.bluetooth.ServerConnectThread;
+import com.pehchevskip.iqearth.bluetooth.service.BluetoothConnectionService;
 import com.pehchevskip.iqearth.controlers.GameControler;
 import com.pehchevskip.iqearth.model.Game;
 import com.pehchevskip.iqearth.model.Player;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
 
+@RequiresApi(api = Build.VERSION_CODES.CUPCAKE)
 public class BluetoothGameActivity extends AppCompatActivity {
     //role
     private static final String ROLE_TAG="role";
     private static final String CLIENT="client";
     private static final String SERVER="server";
     private static final String TAG ="BLUETOTOOFAME" ;
-
+    //Enum for Bluetooth messaging
+    public enum BluetoothMessaging{
+        RegisterOpponent,SettingLetter,Other
+    }
 
     //connection info
     private static final String APP_NAME="iqearth";
@@ -49,6 +57,7 @@ public class BluetoothGameActivity extends AppCompatActivity {
     static final int STATE_MESSAGE_RECEIVED=5;
     static final int STARTED_GAME=6;
     static final int REGISTER_OPPONENT=7;
+    private static final int GAME_BEGIN = 8;
     //views
     TextView status,roleTv,msg;
     EditText editText;
@@ -62,6 +71,7 @@ public class BluetoothGameActivity extends AppCompatActivity {
     public String role;
     //Bluetooth Contorler
     BluetoothControler controler;
+    BluetoothConnectionService bluetoothConnectionService;
     //Game Controler
     GameControler gameControler;
     //Game
@@ -69,7 +79,11 @@ public class BluetoothGameActivity extends AppCompatActivity {
     Player player;
     Player opponent;
     String nickname;
+    //Enum
+    BluetoothMessaging btMessaging;
 
+    @TargetApi(Build.VERSION_CODES.ECLAIR)
+    @RequiresApi(api = Build.VERSION_CODES.ECLAIR)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -90,14 +104,12 @@ public class BluetoothGameActivity extends AppCompatActivity {
         nickname=getIntent().getStringExtra("nickname");
         controler=BluetoothControler.getInstance();
         controler.setHandler(handler);
+        bluetoothConnectionService=BluetoothConnectionService.getInstance(this);
+        bluetoothConnectionService.setHandler(handler);
         if(role.equals(CLIENT)){
             roleTv.setText(CLIENT);
-
-
             Set<BluetoothDevice> bd=mBluetoothAdapter.getBondedDevices();
-
             for(BluetoothDevice bdd:bd){
-
                 bdList.add(bdd);
                 mGames.add(bdd.getName());
 
@@ -108,19 +120,21 @@ public class BluetoothGameActivity extends AppCompatActivity {
         {
 
             roleTv.setText(SERVER);
-            controler.serverClass=new BluetoothControler.InnerServerClass();
 
-            controler.serverClass.start();
+            bluetoothConnectionService.start();
 
         }
+        //local broadcast manager for incoming message
 
+        LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver,new IntentFilter("incomingMessage"));
         ArrayAdapter<String> adapter=new ArrayAdapter<>(BluetoothGameActivity.this,android.R.layout.simple_list_item_1,mGames);
         mGAmes.setAdapter(adapter);
         mGAmes.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                controler.clientClass=new BluetoothControler.InnerClientClass(bdList.get(i));
-                controler.clientClass.start();
+                bluetoothConnectionService.startClient(bdList.get(i),myUuid);
+                controler.setBluetoothDevice(bdList.get(i));
+
 
             }
         });
@@ -129,19 +143,41 @@ public class BluetoothGameActivity extends AppCompatActivity {
         start_game.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
+
                 Intent startGame=new Intent(BluetoothGameActivity.this,tmpActivity.class);
                 startGame.putExtra(ROLE_TAG,role);
                 startGame.putExtra("nickname",nickname);
-
-
                 startActivity(startGame);
-                Message msg=Message.obtain();
-                msg.what=STARTED_GAME;
-                handler.sendMessage(msg);
             }
         });
 
+
+
     }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(mReceiver);
+
+    }
+
+    public BroadcastReceiver mReceiver=new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String text=intent.getStringExtra("theMessage");
+            switch (btMessaging){
+                case RegisterOpponent:
+                    opponent=new Player(text);
+                    gameControler.addPlayer(opponent);
+                    start_game.setVisibility(View.VISIBLE);
+                    break;
+
+            }
+
+        }
+    };
     Handler handler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message message) {
@@ -158,30 +194,26 @@ public class BluetoothGameActivity extends AppCompatActivity {
                     Message msg=Message.obtain();
                     msg.what=REGISTER_OPPONENT;
                     handler.sendMessage(msg);
-                    start_game.setVisibility(View.VISIBLE);
+                    btMessaging=BluetoothMessaging.RegisterOpponent;
 
                     break;
                 case STATE_CONNECTION_FAILED:
                     status.setText("Connection Failed");
                     break;
                 case STATE_MESSAGE_RECEIVED:
-                    byte[] readBuff=(byte[])message.obj;
-                    String playerName=new String(readBuff,0,message.arg1);
-                    opponent=new Player(playerName);
-                    gameControler.addPlayer(opponent);
-                    Log.d("Opponent",playerName);
 
 
 
                     break;
                 case STARTED_GAME:
 
-                   Log.d(TAG,"Started GAme");
-                   game=new Game(60000);
-                   gameControler.setGame(game);
+
+
                    break;
                 case REGISTER_OPPONENT:
-                    controler.sendReceive.write(nickname.getBytes());
+
+                   bluetoothConnectionService.write(nickname.getBytes());
+
                     break;
 
 

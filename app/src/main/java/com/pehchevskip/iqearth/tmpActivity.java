@@ -2,7 +2,11 @@ package com.pehchevskip.iqearth;
 
 import android.annotation.SuppressLint;
 import android.arch.persistence.room.Room;
+import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -14,6 +18,7 @@ import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -29,6 +34,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.pehchevskip.iqearth.bluetooth.BluetoothControler;
+import com.pehchevskip.iqearth.bluetooth.service.BluetoothConnectionService;
 import com.pehchevskip.iqearth.controlers.GameControler;
 import com.pehchevskip.iqearth.model.Game;
 import com.pehchevskip.iqearth.model.Player;
@@ -40,8 +46,12 @@ import com.pehchevskip.iqearth.persistance.entities.EntityMountain;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 public class tmpActivity extends AppCompatActivity {
+    public enum BluetoothMessaging{
+        RegisterOpponent,SettingLetter,AnsweredQuestion,Other
+    }
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -56,7 +66,9 @@ public class tmpActivity extends AppCompatActivity {
     private static List<String> possibleCountries = new ArrayList<>();
     private static List<String> possibleAnimals = new ArrayList<>();
     private static List<String> possibleMountains = new ArrayList<>();
-
+    //connection info
+    private static final String APP_NAME="iqearth";
+    private static final UUID myUuid=UUID.fromString("f9f89bf7-e40a-4d51-bc0d-f90d74919141");
     private static Player player ;
     private static Player opponent;
     private static Game game;
@@ -70,15 +82,22 @@ public class tmpActivity extends AppCompatActivity {
     static final int STARTED_GAME=6;
     static final int ANSWERED_QUESTION=7;
     static final int OPPONENT_REGISTER=8;
+    static final int GENERATE_LETTER=9;
     //role tag
     private static final String ROLE_TAG="role";
     private static final String CLIENT="client";
     private static final String SERVER="server";
-    String role;
+    static String role;
     //timer
-    CountDownTimer timer;
+    static CountDownTimer timer;
     //nickname for opponent
     static String nickname;
+
+    //letter
+    static char letterGame;
+    //BluetoothMessaging
+    static BluetoothMessaging bluetoothMessaging;
+    public boolean flag;
 
     /**
      * The {@link ViewPager} that will host the section contents.
@@ -86,9 +105,13 @@ public class tmpActivity extends AppCompatActivity {
     private ViewPager mViewPager;
 
     //Views
-    TextView remaining_time,my_score,opp_score;
+    static TextView remaining_time;
+    TextView my_score;
+    TextView opp_score;
+    static TextView letter;
 
     static BluetoothControler controler;
+    static BluetoothConnectionService bluetoothConnectionService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,7 +123,6 @@ public class tmpActivity extends AppCompatActivity {
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
-
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
@@ -111,6 +133,8 @@ public class tmpActivity extends AppCompatActivity {
         my_score=(TextView)findViewById(R.id.myscore);
         opp_score=(TextView)findViewById(R.id.opp_score);
         remaining_time=(TextView)findViewById(R.id.time_remaining);
+        letter=findViewById(R.id.bluetooth_letter);
+
         //connecting with game controler
         gameControler=GameControler.getInstance();
         game=gameControler.getGame();
@@ -121,14 +145,14 @@ public class tmpActivity extends AppCompatActivity {
         mViewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
         tabLayout.addOnTabSelectedListener(new TabLayout.ViewPagerOnTabSelectedListener(mViewPager));
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+        //FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+     /*   fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
-        });
+        });*/
 
         // Database
         db = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "iqearth-db").build();
@@ -137,12 +161,54 @@ public class tmpActivity extends AppCompatActivity {
         getMountainsFromDb();
 
         //start timer
-        startTimer();
+        bluetoothConnectionService=BluetoothConnectionService.getInstance(this);
+        bluetoothConnectionService.setHandler(handler);
         role=getIntent().getStringExtra(ROLE_TAG);
+        game=new Game(60000);
+        gameControler.setGame(game);
+        if(role.equals(SERVER)){
+            letterGame=game.generateLetter();
+            SetLetterView(letterGame);
+            Message msg=Message.obtain();
+            msg.what=GENERATE_LETTER;
+            handler.sendMessage(msg);
+            //bluetoothConnectionService.start();
+        }
+        if(role.equals(CLIENT)){
+            //BluetoothDevice bd=controler.getBdDevice();
+            //bluetoothConnectionService.startClient(bd,myUuid);
+        }
 
+        //local broadcast manager for incoming message
+
+        LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver,new IntentFilter("incomingMessage"));
 
     }
-    static Handler handler = new Handler(new Handler.Callback() {
+    public BroadcastReceiver mReceiver=new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String text=intent.getStringExtra("theMessage");
+            switch (bluetoothMessaging){
+                case RegisterOpponent:
+                    opponent=new Player(text);
+                    gameControler.addPlayer(opponent);
+                    break;
+                case SettingLetter:
+                    game.setLetter(text.charAt(0));
+                    SetLetterView(text.charAt(0));
+                    Message msg=Message.obtain();
+                    msg.what=STARTED_GAME;
+                    handler.sendMessage(msg);
+                    break;
+                case AnsweredQuestion:
+                    increaseScore(opponent);
+                    Log.d("opp_score", String.valueOf(opponent.getScore()));
+                    break;
+            }
+
+        }
+    };
+      Handler handler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message message) {
             switch (message.what){
@@ -155,16 +221,16 @@ public class tmpActivity extends AppCompatActivity {
                 case STATE_CONNECTED:
                     //status.setText("Connected");
                     //start_game.setVisibility(View.VISIBLE);
+                    //connection info
+                    Log.d("tmpActivity","Connected");
+
 
                     break;
                 case STATE_CONNECTION_FAILED:
                     //status.setText("Connection Failed");
                     break;
                 case STATE_MESSAGE_RECEIVED:
-                    byte[] readBuff=(byte[])message.obj;
-                    String tempMsg=new String(readBuff,0,message.arg1);
-                    increaseScore(opponent);
-                    Log.d("opp_score", String.valueOf(opponent.getScore()));
+
 
 
 
@@ -172,10 +238,22 @@ public class tmpActivity extends AppCompatActivity {
                     break;
                 case STARTED_GAME:
                     Log.d("Handler","Started GAme");
+                    startTimerStatic();
                     break;
                 case ANSWERED_QUESTION:
-                    controler.sendReceive.write((String.valueOf(player.getScore()).getBytes()));
+
                     break;
+                case GENERATE_LETTER:
+
+
+
+                        bluetoothMessaging=BluetoothMessaging.SettingLetter;
+
+                        bluetoothConnectionService.write(String.valueOf(letterGame).getBytes());
+
+                        break;
+
+
 
 
 
@@ -188,6 +266,14 @@ public class tmpActivity extends AppCompatActivity {
 
         }
     });
+
+    private void startTimerStatic() {
+        startTimer();
+    }
+
+    private static void SetLetterView(char letterGame){
+         letter.setText((String.valueOf(gameControler.getGame().getLetter())).toUpperCase());
+     }
     private static void increaseScore(Player p)
     {
        gameControler.increaseScore(p,1);
@@ -216,7 +302,9 @@ public class tmpActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        controler.sendReceive.cancel();
+        //controler.sendReceive.cancel();
+        unregisterReceiver(mReceiver);
+
     }
 
     @SuppressLint("StaticFieldLeak")
@@ -289,10 +377,17 @@ public class tmpActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
+    public void answeredQuestion(){
+        Message msg=Message.obtain();
+        msg.what=ANSWERED_QUESTION;
+        handler.sendMessage(msg);
+    }
 
     /**
      * A placeholder fragment containing a simple view.
      */
+
+    @SuppressLint("ValidFragment")
     public static class PlaceholderFragment extends Fragment {
         /**
          * The fragment argument representing the section number for this
@@ -316,11 +411,7 @@ public class tmpActivity extends AppCompatActivity {
             return fragment;
         }
 
-        public static void answeredQuestion(){
-            Message msg=Message.obtain();
-            msg.what=ANSWERED_QUESTION;
-            handler.sendMessage(msg);
-        }
+
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
@@ -344,7 +435,8 @@ public class tmpActivity extends AppCompatActivity {
                                 player.getAnswers("countries").add(answer);
                                 increaseScore(player);
                                 Log.d("Score",String.valueOf(player.getScore()));
-                                answeredQuestion();
+                                bluetoothMessaging=BluetoothMessaging.AnsweredQuestion;
+                                bluetoothConnectionService.write(String.valueOf(player.getScore()).getBytes());
                                 updateTextView(player.getAnswers("countries"), textView);
                             }
                             else
@@ -356,7 +448,8 @@ public class tmpActivity extends AppCompatActivity {
                                 Toast.makeText(rootView.getContext(), "Correct", Toast.LENGTH_SHORT).show();
                                 player.getAnswers("animals").add(answer);
                                 increaseScore(player);
-                                answeredQuestion();
+                                bluetoothMessaging=BluetoothMessaging.AnsweredQuestion;
+                                bluetoothConnectionService.write(String.valueOf(player.getScore()).getBytes());
                                 updateTextView(player.getAnswers("animals"), textView);
                             }
                             else
@@ -368,7 +461,8 @@ public class tmpActivity extends AppCompatActivity {
                                 Toast.makeText(rootView.getContext(), "Correct", Toast.LENGTH_SHORT).show();
                                 player.getAnswers("mountains").add(answer);
                                 increaseScore(player);
-                                answeredQuestion();
+                                bluetoothMessaging=BluetoothMessaging.AnsweredQuestion;
+                                bluetoothConnectionService.write(String.valueOf(player.getScore()).getBytes());
                                 updateTextView(player.getAnswers("mountains"), textView);
                             }
                             else

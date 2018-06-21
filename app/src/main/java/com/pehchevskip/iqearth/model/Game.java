@@ -28,11 +28,14 @@ public class Game {
     public Game(int time) {
         this.time = time;
         this.players = new ArrayList<>();
+
+    }
+    public char generateLetter(){
         Random rnd = new Random();
         char c = (char) (rnd.nextInt(26) + 'a');
         this.letter=c;
+        return this.letter;
     }
-
     public int getTime() {
         return time;
     }

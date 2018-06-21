@@ -18,10 +18,16 @@
         />
 
     <Button
-        android:id="@+id/submit"
+        android:id="@+id/bluetooth_game"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Submit"
+        android:text="2 players"
+        />
+    <Button
+        android:id="@+id/wifi_game"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="2+ players"
         />
 
 

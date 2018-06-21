@@ -28,7 +28,7 @@ public class StartActivity extends AppCompatActivity {
     private final static String NICKNAME="nickname";
     private static boolean D=true;
 
-    private static int REQUEST_ENABLE_BT = 2;
+
 
     //Views
     TextView mTextViewNickname;
@@ -78,12 +78,7 @@ public class StartActivity extends AppCompatActivity {
             }
         });
 
-        mBluetoothAdapter=BluetoothAdapter.getDefaultAdapter();
 
-        if(!mBluetoothAdapter.isEnabled()){
-            Intent bt_reques=new Intent(mBluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(bt_reques,REQUEST_ENABLE_BT);
-        }
 
     }
 

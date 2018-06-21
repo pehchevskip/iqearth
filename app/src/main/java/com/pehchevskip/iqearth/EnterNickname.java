@@ -1,6 +1,7 @@
 package com.pehchevskip.iqearth;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.arch.persistence.room.Room;
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -29,7 +30,7 @@ public class EnterNickname extends AppCompatActivity {
     private final static String NICKNAME="nickname";
     //Views
     EditText mEditTextnickname;
-    Button mButtonSumbit;
+    Button mBluetoothGame,mWifiGame;
 
     //Nickame of player
     String nickname;
@@ -47,26 +48,36 @@ public class EnterNickname extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_enter_nickname);
         mEditTextnickname=(EditText) findViewById(R.id.nickname);
-        mButtonSumbit=(Button)findViewById(R.id.submit);
+        mBluetoothGame=(Button)findViewById(R.id.bluetooth_game);
+        mWifiGame=findViewById(R.id.wifi_game);
         gameControler=GameControler.getInstance();
-        mButtonSumbit.setOnClickListener(new View.OnClickListener() {
+        mWifiGame.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if(!mEditTextnickname.getText().toString().trim().equals("")){
-                    nickname=mEditTextnickname.getText().toString();
-                    Intent start_activity;
-//                    start_activity = new Intent(EnterNickname.this,StartActivity.class);
-                    start_activity = new Intent(EnterNickname.this,ServerOrClientActivity.class);
-                    start_activity.putExtra(NICKNAME,nickname);
-                    player=new Player(nickname);
-                    gameControler.addPlayer(player);
-                    startActivity(start_activity);
+                   startActivity(ServerOrClientActivity.class);
+                }
+            }
+        });
+        mBluetoothGame.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(!mEditTextnickname.getText().toString().trim().equals("")) {
+                    startActivity(ListDevicesActivity.class);
                 }
             }
         });
         // Database
         db = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "iqearth-db").build();
         checkForExistingDataInDatabase();
+    }
+    private void startActivity(Class<?> startingActivity){
+        nickname=mEditTextnickname.getText().toString();
+        Intent start_activity = new Intent(EnterNickname.this,startingActivity);
+        start_activity.putExtra(NICKNAME,nickname);
+        player=new Player(nickname);
+        gameControler.addPlayer(player);
+        startActivity(start_activity);
     }
     private void checkForExistingDataInDatabase() {
         checkForExistingCountries();
