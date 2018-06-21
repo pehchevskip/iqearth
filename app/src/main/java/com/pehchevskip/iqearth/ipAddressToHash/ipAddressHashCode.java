@@ -1,22 +1,22 @@
-package com.pehchevskip.iqearth.ipAdressToHash;
+package com.pehchevskip.iqearth.ipAddressToHash;
 
-public class ipAdressHashCode {
+public class ipAddressHashCode {
 
     private String ipAdressHash;
-    public ipAdressHashCode(){
+    public ipAddressHashCode(){
     }
     public String transform(String ipAdress){
         int sum;
+        int dif = 'b' - '0';
         StringBuilder builder=new StringBuilder();
         for(int i=0;i<ipAdress.length();i++){
             if(ipAdress.charAt(i)=='.'){
                 builder.append('a');
                 continue;
             }
-            sum=(int)ipAdress.charAt(i);
-            sum+=1;
-//            sum = Integer.parseInt(String.valueOf(ipAdress.charAt(i)));
-//            sum += 'b';
+//            sum=(int)ipAdress.charAt(i);
+//            sum+=1;
+            sum = ipAdress.charAt(i) + dif;
             builder.append((char)sum);
         }
         ipAdressHash=builder.toString();
@@ -24,15 +24,16 @@ public class ipAdressHashCode {
     }
     public String decode(String ipAdress){
         int sum;
+        int dif = 'b' - '0';
         StringBuilder builder=new StringBuilder();
         for(int i=0;i<ipAdress.length();i++){
             if(ipAdress.charAt(i)=='a'){
                 builder.append('.');
                 continue;
             }
-            sum=(int)ipAdress.charAt(i);
-            sum-=1;
-//            sum -= 'b';
+//            sum=(int)ipAdress.charAt(i);
+//            sum-=1;
+            sum = ipAdress.charAt(i) - dif;
             builder.append((char)sum);
         }
         String ipAddress=builder.toString();

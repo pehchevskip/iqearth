@@ -6,22 +6,41 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context=".StartActivity">
-<TextView
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:text="Welcome"/>
+
     <TextView
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/nicname"/>
+        android:layout_marginTop="50dp"
+        android:layout_marginBottom="50dp"
+        android:text="@string/appNameLogo"
+        android:textSize="50sp"
+        android:textAlignment="center"
+        android:textColor="@android:color/holo_blue_dark"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:id="@+id/nicname"
+        android:text="Hi nickname!"
+        android:textSize="25sp"
+        android:textAlignment="center"/>
+
     <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
         android:id="@+id/create_game"
-        android:text="Create Game"/>
-    <Button
-        android:layout_width="wrap_content"
+        android:layout_width="250sp"
         android:layout_height="wrap_content"
-        android:text="Join Game"
-        android:id="@+id/join_game"/>
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="5dp"
+        android:text="Create a game"/>
+
+    <Button
+        android:id="@+id/join_game"
+        android:layout_width="250sp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="Join Game" />
+
 </LinearLayout>

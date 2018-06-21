@@ -56,13 +56,13 @@ public class AnimalsRetrofitTask extends AsyncTask<Void, Void, List<String>> {
         for(String string : strings) {
             animalList.add(new EntityAnimal(string));
         }
-        countEntities.increaseTries();
         if(!strings.isEmpty()) {
             countEntities.increase(1);
         }
         if(countEntities.getValue() >= 2) {
             submitBt.setEnabled(true);
         }
+        countEntities.increaseTries();
         insertAnimals(animalList);
     }
 

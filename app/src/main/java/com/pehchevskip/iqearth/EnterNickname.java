@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -30,10 +31,15 @@ import java.util.List;
 public class EnterNickname extends AppCompatActivity {
 
     private final static String NICKNAME="nickname";
+    private static final String ROLE_TAG="role";
+    private static final String ONEPLAYER = "one";
     // Views
     EditText mEditTextnickname;
     Button mButtonSubmit;
     TextView mEnterNickname;
+    RadioButton onePlayerRb;
+    RadioButton twoPlayersRb;
+    RadioButton morePlayersRb;
 
     // Nickame of player
     String nickname;
@@ -58,6 +64,9 @@ public class EnterNickname extends AppCompatActivity {
         mEditTextnickname=(EditText) findViewById(R.id.nickname);
         mButtonSubmit =(Button)findViewById(R.id.submit);
         mEnterNickname = findViewById(R.id.enterNicknameTv);
+        onePlayerRb = findViewById(R.id.oneplayerRb);
+        twoPlayersRb = findViewById(R.id.twoplayersRb);
+        morePlayersRb = findViewById(R.id.moreplayersRb);
         gameControler=GameControler.getInstance();
         mButtonSubmit.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -66,8 +75,14 @@ public class EnterNickname extends AppCompatActivity {
                     nickname=mEditTextnickname.getText().toString();
                     insertPlayer(nickname);
                     Intent start_activity;
-//                    start_activity = new Intent(EnterNickname.this,StartActivity.class);
-                    start_activity = new Intent(EnterNickname.this,ServerOrClientActivity.class);
+                    if(onePlayerRb.isChecked()) {
+                        start_activity = new Intent(EnterNickname.this,WifiGameActivity.class);
+                        start_activity.putExtra(ROLE_TAG, ONEPLAYER);
+                    } else if(twoPlayersRb.isChecked()) {
+                        start_activity = new Intent(EnterNickname.this,StartActivity.class);
+                    } else {
+                        start_activity = new Intent(EnterNickname.this,ServerOrClientActivity.class);
+                    }
                     start_activity.putExtra(NICKNAME,nickname);
                     player=new Player(nickname);
                     gameControler.addPlayer(player);

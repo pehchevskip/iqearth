@@ -61,13 +61,13 @@ public class CountryRetrofitTask extends AsyncTask<Void, Void, List<Country>> {
             countriesList.add(new EntityCountry(country.name));
             citiesList.add(new EntityCity(country.capital));
         }
-        countEntities.increaseTries();
         if(!countries.isEmpty()) {
             countEntities.increase(1);
         }
         if(countEntities.getValue() >= 2) {
             submitBt.setEnabled(true);
         }
+        countEntities.increaseTries();
         insertCountries(countriesList);
         insertCities(citiesList);
     }

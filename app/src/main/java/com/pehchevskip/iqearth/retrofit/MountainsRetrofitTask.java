@@ -57,13 +57,13 @@ public class MountainsRetrofitTask extends AsyncTask<Void, Void, List<String>> {
         for(String string : strings) {
             mountainList.add(new EntityMountain(string));
         }
-        countEntities.increaseTries();
         if(!strings.isEmpty()) {
             countEntities.increase(1);
         }
         if(countEntities.getValue() >= 2) {
             submitBt.setEnabled(true);
         }
+        countEntities.increaseTries();
         insertMountains(mountainList);
     }
 

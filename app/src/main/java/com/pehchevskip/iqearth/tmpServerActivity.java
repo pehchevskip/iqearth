@@ -7,7 +7,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.pehchevskip.iqearth.ipAdressToHash.ipAdressHashCode;
+import com.pehchevskip.iqearth.ipAddressToHash.ipAddressHashCode;
 import com.pehchevskip.iqearth.model.Game;
 import com.pehchevskip.iqearth.model.Player;
 
@@ -32,9 +32,10 @@ public class tmpServerActivity extends AppCompatActivity {
     private static final String SERVER="server";
     private static final int SocketServerPORT = 8080;
 
-    TextView infoip, msg, connectedDevicesTv;
+    TextView infoip, connectedDevicesTv;
+//    TextView msg;
     Button startButton;
-    public ipAdressHashCode coder;
+    public ipAddressHashCode coder;
     String message = "";
     ServerSocket serverSocket;
 
@@ -49,14 +50,14 @@ public class tmpServerActivity extends AppCompatActivity {
         setContentView(R.layout.activity_tmp_server);
 
         infoip = findViewById(R.id.infoipTv);
-        msg = findViewById(R.id.msgTv);
+//        msg = findViewById(R.id.msgTv);
         connectedDevicesTv = findViewById(R.id.connectedDevicesTv);
         startButton = findViewById(R.id.serverStartBt);
         startButton.setOnClickListener(startButtonOnClickListener);
 
         nickname = getIntent().getStringExtra(NICKNAME);
         connectedIps = new ArrayList<>();
-        coder=new ipAdressHashCode();
+        coder=new ipAddressHashCode();
         Thread socketServerThread = new Thread(new SocketServerThread());
         socketServerThread.start();
     }
@@ -87,7 +88,7 @@ public class tmpServerActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         String code=coder.transform(getIpAddress());
-                        infoip.setText(String.format("Waiting on: %s, decoded:%s", code,coder.decode(code)));
+                        infoip.setText(String.format("%s", code));
                     }
                 });
 
@@ -102,7 +103,7 @@ public class tmpServerActivity extends AppCompatActivity {
                         @Override
                         public void run() {
                             if(!messageFromClient.equals(ISSTARTED)) {
-                                msg.setText(message);
+//                                msg.setText(message);
                                 addConnectedDevice(messageFromClient, finalSocket.getInetAddress().toString());
                             }
                         }
@@ -121,7 +122,7 @@ public class tmpServerActivity extends AppCompatActivity {
                 tmpServerActivity.this.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        msg.setText(e.toString());
+//                        msg.setText(e.toString());
                     }
                 });
             } finally {

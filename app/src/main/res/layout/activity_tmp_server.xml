@@ -8,40 +8,76 @@
     tools:context="com.pehchevskip.iqearth.tmpServerActivity">
 
     <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="50dp"
+        android:layout_marginBottom="50dp"
+        android:text="@string/appNameLogo"
+        android:textSize="50sp"
+        android:textAlignment="center"
+        android:textColor="@android:color/holo_blue_dark"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Share this token with other players:"
+        android:textAlignment="center"
+        android:textSize="18sp"/>
+
+    <TextView
         android:id="@+id/infoipTv"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="infoip" />
+        android:layout_marginBottom="20dp"
+        android:text="not present"
+        android:textAlignment="center"
+        android:textSize="25sp"
+        android:textColor="@android:color/holo_purple"/>
+
+    <!--<TextView-->
+        <!--android:id="@+id/msgTv"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:text="msg" />-->
 
     <TextView
-        android:id="@+id/msgTv"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="msg" />
+        android:text="@string/waiting_for_other_players_to_connect"
+        android:textSize="18sp"
+        android:textAlignment="center"/>
 
     <LinearLayout
         android:id="@+id/wifiLoading"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:gravity="center">
         <ProgressBar
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:indeterminate="true"/>
+            android:indeterminate="true"
+            android:indeterminateTint="@color/colorPrimaryDark"/>
     </LinearLayout>
 
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:layout_marginBottom="5dp">
         <TextView
             android:id="@+id/connectedDevicesTv"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:textAlignment="center"
+            android:textSize="25sp"/>
     </ScrollView>
 
     <Button
         android:id="@+id/serverStartBt"
         android:enabled="true"
-        android:layout_width="match_parent"
+        android:layout_width="250dp"
         android:layout_height="wrap_content"
+        android:layout_gravity="center"
         android:text="Start" />
 </LinearLayout>

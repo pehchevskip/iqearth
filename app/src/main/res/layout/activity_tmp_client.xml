@@ -7,35 +7,49 @@
     android:orientation="vertical"
     tools:context="com.pehchevskip.iqearth.tmpClientActivity">
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="50dp"
+        android:layout_marginBottom="50dp"
+        android:text="@string/appNameLogo"
+        android:textSize="50sp"
+        android:textAlignment="center"
+        android:textColor="@android:color/holo_blue_dark"
+        android:textStyle="bold" />
 
     <EditText
         android:id="@+id/addressEt"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="IP" />
+        android:layout_width="300dp"
+        android:layout_height="40dp"
+        android:layout_gravity="center"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="20dp"
+        android:textAlignment="center"
+        android:background="@drawable/edittext_style"
+        android:textColor="@android:color/holo_purple"
+        android:hint="@string/enter_the_token_here"
+        android:textSize="22sp"/>
 
     <Button
         android:id="@+id/connectBt"
-        android:layout_width="match_parent"
+        android:layout_width="250dp"
         android:layout_height="wrap_content"
-        android:text="Connect..." />
-
-    <Button
-        android:id="@+id/clearBt"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Clear" />
+        android:layout_gravity="center"
+        android:text="Connect" />
 
     <Button
         android:id="@+id/startBt"
-        android:layout_width="match_parent"
+        android:layout_width="250dp"
         android:layout_height="wrap_content"
+        android:layout_gravity="center"
         android:text="Start"
         android:enabled="false"/>
 
-    <TextView
-        android:id="@+id/responseTv"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Clear" />
+    <!--<TextView-->
+        <!--android:id="@+id/responseTv"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:text="Clear" />-->
+
 </LinearLayout>

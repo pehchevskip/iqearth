@@ -34,6 +34,7 @@ import com.pehchevskip.iqearth.model.Game;
 import com.pehchevskip.iqearth.model.Player;
 import com.pehchevskip.iqearth.persistance.AppDatabase;
 import com.pehchevskip.iqearth.persistance.entities.EntityAnimal;
+import com.pehchevskip.iqearth.persistance.entities.EntityCity;
 import com.pehchevskip.iqearth.persistance.entities.EntityCountry;
 import com.pehchevskip.iqearth.persistance.entities.EntityMountain;
 
@@ -69,9 +70,10 @@ public class WifiGameActivity extends AppCompatActivity {
     private static final String STARTED = "nowStarted";
     private static final String HEREISMYNICK = "hereIsMyNick";
     private static final String SCORE = "score";
-    private static final String ROLE_TAG="role";
-    private static final String CLIENT="client";
-    private static final String SERVER="server";
+    private static final String ROLE_TAG = "role";
+    private static final String CLIENT = "client";
+    private static final String SERVER = "server";
+    private static final String ONEPLAYER = "one";
     private static final String IPADDR = "ipaddr";
 
     private SectionsPagerAdapter mSectionsPagerAdapter;
@@ -79,6 +81,7 @@ public class WifiGameActivity extends AppCompatActivity {
     private static List<String> possibleCountries = new ArrayList<>();
     private static List<String> possibleAnimals = new ArrayList<>();
     private static List<String> possibleMountains = new ArrayList<>();
+    private static List<String> possibleCities = new ArrayList<>();
 
     private static String role;
     private static Player player;
@@ -88,8 +91,8 @@ public class WifiGameActivity extends AppCompatActivity {
     private static String nickname;
 
     private Button enterButton;
-//    private EditText answerEditText;
     private TextView timerTv, letterTv;
+    private static TextView scoreTv;
     private ProgressBar timerPb;
 
     private CountDownTimer timer;
@@ -107,8 +110,6 @@ public class WifiGameActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_wifi_game);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
@@ -137,12 +138,14 @@ public class WifiGameActivity extends AppCompatActivity {
         getCountriesFromDb();
         getAnimalsFromDb();
         getMountainsFromDb();
+        getCitiesFromDb();
 
         enterButton = findViewById(R.id.wifi_enterBt);
 //        answerEditText = findViewById(R.id.wifi_answerEt);
         timerTv = findViewById(R.id.wifiTimerTv);
         timerPb = findViewById(R.id.wifiTimerPb);
         letterTv = findViewById(R.id.wifi_letter);
+        scoreTv = findViewById(R.id.wifi_score);
 
         if(role.equals(SERVER)) {
             letter = randomChar();
@@ -153,6 +156,10 @@ public class WifiGameActivity extends AppCompatActivity {
         } else if(role.equals(CLIENT)) {
             ipAddress = getIntent().getStringExtra(IPADDR);
             sendMyNickToServer(nickname);
+        } else if(role.equals(ONEPLAYER)) {
+            letter = randomChar();
+            game.setLetter(letter);
+            letterTv.setText(String.valueOf(game.getLetter()).toUpperCase());
         }
 
         //start timer
@@ -281,6 +288,18 @@ public class WifiGameActivity extends AppCompatActivity {
                                 Toast.makeText(rootView.getContext(), "Incorrect", Toast.LENGTH_SHORT).show();
                             break;
                         case 2:
+                            if(possibleCities.contains(answer) && !player.getAnswers("cities").contains(answer) && checkLetter(answer)) {
+                                Toast.makeText(rootView.getContext(), "Correct", Toast.LENGTH_SHORT).show();
+                                player.getAnswers("cities").add(answer);
+                                increaseScore(player);
+                                Log.d("Score",String.valueOf(player.getScore()));
+                                updateTextView(player.getAnswers("cities"), textView);
+                                clearEditText(editText);
+                            }
+                            else
+                                Toast.makeText(rootView.getContext(), "Incorrect", Toast.LENGTH_SHORT).show();
+                            break;
+                        case 3:
                             if(possibleAnimals.contains(answer) && !player.getAnswers("animals").contains(answer) && checkLetter(answer)) {
                                 Toast.makeText(rootView.getContext(), "Correct", Toast.LENGTH_SHORT).show();
                                 player.getAnswers("animals").add(answer);
@@ -292,7 +311,7 @@ public class WifiGameActivity extends AppCompatActivity {
                             else
                                 Toast.makeText(rootView.getContext(), "Incorrect", Toast.LENGTH_SHORT).show();
                             break;
-                        case 3:
+                        case 4:
                             if(possibleMountains.contains(answer) && !player.getAnswers("mountains").contains(answer) && checkLetter(answer)) {
                                 Toast.makeText(rootView.getContext(), "Correct", Toast.LENGTH_SHORT).show();
                                 player.getAnswers("mountains").add(answer);
@@ -331,6 +350,7 @@ public class WifiGameActivity extends AppCompatActivity {
 
     private static void increaseScore(Player player) {
         gameControler.increaseScore(player, 1);
+        scoreTv.setText(String.valueOf(player.getScore()));
     }
 
     @Override
@@ -388,7 +408,7 @@ public class WifiGameActivity extends AppCompatActivity {
         @Override
         public int getCount() {
             // Show 3 total pages.
-            return 3;
+            return 4;
         }
     }
 
@@ -396,7 +416,7 @@ public class WifiGameActivity extends AppCompatActivity {
         timer = new CountDownTimer(gameControler.getGame().getTime(),1000) {
             @Override
             public void onTick(long l) {
-                timerTv.setText(l/1000 + "s");
+                timerTv.setText(String.format("%1$3s", l / 1000 + "s"));
                 timerPb.setProgress((int) (l/1000));
             }
             @Override
@@ -416,7 +436,7 @@ public class WifiGameActivity extends AppCompatActivity {
         }.start();
     }
 
-    private static void updateTextView(Set<String> answers, TextView textView) {
+    private static void updateTextView(List<String> answers, TextView textView) {
         StringBuilder sb = new StringBuilder();
         for(String answer : answers)
             sb.append(answer + ", ");
@@ -430,6 +450,71 @@ public class WifiGameActivity extends AppCompatActivity {
     private void sendMyNickToServer(String nickname) {
         MyClientTask myClientTask = new MyClientTask(HEREISMYNICK + nickname);
         myClientTask.execute();
+    }
+
+    private char randomChar() {
+        return (char) ((new Random()).nextInt(26) + 'a');
+    }
+
+    @SuppressLint("StaticFieldLeak")
+    private void getMountainsFromDb() {
+        new AsyncTask<Void, Void, List<EntityMountain>>() {
+            @Override
+            protected List<EntityMountain> doInBackground(Void... voids) {
+                return db.daoMountain().getMountains();
+            }
+            @Override
+            protected void onPostExecute(List<EntityMountain> entityMountains) {
+                for(EntityMountain entityMountain : entityMountains)
+                    possibleMountains.add(entityMountain.getName().toLowerCase());
+            }
+        }.execute();
+    }
+
+    @SuppressLint("StaticFieldLeak")
+    private void getAnimalsFromDb() {
+        new AsyncTask<Void, Void, List<EntityAnimal>>() {
+            @Override
+            protected List<EntityAnimal> doInBackground(Void... voids) {
+                return db.daoAnimals().getAnimals();
+            }
+            @Override
+            protected void onPostExecute(List<EntityAnimal> entityAnimals) {
+                for(EntityAnimal entityAnimal : entityAnimals)
+                    possibleAnimals.add(entityAnimal.getName().toLowerCase());
+            }
+        }.execute();
+    }
+
+    @SuppressLint("StaticFieldLeak")
+    private void getCountriesFromDb() {
+        new AsyncTask<Void, Void, List<EntityCountry>>() {
+            @Override
+            protected List<EntityCountry> doInBackground(Void... voids) {
+                return db.daoCountry().getCountries();
+            }
+            @Override
+            protected void onPostExecute(List<EntityCountry> entityCountries) {
+                for(EntityCountry entityCountry : entityCountries)
+                    possibleCountries.add(entityCountry.getName().toLowerCase());
+            }
+        }.execute();
+    }
+
+    @SuppressLint("StaticFieldLeak")
+    private void getCitiesFromDb() {
+        new AsyncTask<Void, Void, List<EntityCity>>() {
+            @Override
+            protected List<EntityCity> doInBackground(Void... voids) {
+                return db.daoCity().getCities();
+            }
+            @Override
+            protected void onPostExecute(List<EntityCity> entityCities) {
+                for(EntityCity entityCity : entityCities) {
+                    possibleCities.add(entityCity.getName().toLowerCase());
+                }
+            }
+        }.execute();
     }
 
     private String getIpAddress() {
@@ -451,58 +536,6 @@ public class WifiGameActivity extends AppCompatActivity {
             ip += "Something went wrong!" + e.toString() + "\n";
         }
         return ip;
-    }
-
-    private char randomChar() {
-        return (char) ((new Random()).nextInt(26) + 'a');
-    }
-
-    @SuppressLint("StaticFieldLeak")
-    private void getMountainsFromDb() {
-        new AsyncTask<Void, Void, List<EntityMountain>>() {
-            @Override
-            protected List<EntityMountain> doInBackground(Void... voids) {
-                return db.daoMountain().getMountains();
-            }
-            @Override
-            protected void onPostExecute(List<EntityMountain> entityMountains) {
-                super.onPostExecute(entityMountains);
-                for(EntityMountain entityMountain : entityMountains)
-                    possibleMountains.add(entityMountain.getName().toLowerCase());
-            }
-        }.execute();
-    }
-
-    @SuppressLint("StaticFieldLeak")
-    private void getAnimalsFromDb() {
-        new AsyncTask<Void, Void, List<EntityAnimal>>() {
-            @Override
-            protected List<EntityAnimal> doInBackground(Void... voids) {
-                return db.daoAnimals().getAnimals();
-            }
-            @Override
-            protected void onPostExecute(List<EntityAnimal> entityAnimals) {
-                super.onPostExecute(entityAnimals);
-                for(EntityAnimal entityAnimal : entityAnimals)
-                    possibleAnimals.add(entityAnimal.getName().toLowerCase());
-            }
-        }.execute();
-    }
-
-    @SuppressLint("StaticFieldLeak")
-    private void getCountriesFromDb() {
-        new AsyncTask<Void, Void, List<EntityCountry>>() {
-            @Override
-            protected List<EntityCountry> doInBackground(Void... voids) {
-                return db.daoCountry().getCountries();
-            }
-            @Override
-            protected void onPostExecute(List<EntityCountry> entityCountries) {
-                super.onPostExecute(entityCountries);
-                for(EntityCountry entityCountry : entityCountries)
-                    possibleCountries.add(entityCountry.getName().toLowerCase());
-            }
-        }.execute();
     }
 
 }

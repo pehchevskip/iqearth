@@ -52,7 +52,7 @@ public class StartActivity extends AppCompatActivity {
         mButtonJoinGame = (Button) findViewById(R.id.join_game);
         mTextViewNickname = (TextView) findViewById(R.id.nicname);
         final String nickname=getIntent().getStringExtra(NICKNAME);
-        mTextViewNickname.setText(nickname);
+        mTextViewNickname.setText("Hi " + nickname + "!");
         //inicialiazing game controler
         gameControler=GameControler.getInstance();
 

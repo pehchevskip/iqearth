@@ -35,6 +35,7 @@ public class tmpWifiFinishActivity extends AppCompatActivity {
     private Player me;
 
     private TextView resultTv;
+    private TextView statusTv;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +43,7 @@ public class tmpWifiFinishActivity extends AppCompatActivity {
         setContentView(R.layout.activity_tmp_wifi_finish);
 
         resultTv = findViewById(R.id.wifi_resultTv);
+        statusTv = findViewById(R.id.wifi_statusTv);
         role = getIntent().getStringExtra(ROLE_TAG);
         gameControler = GameControler.getInstance();
         me = gameControler.getCurrentPlayer();
@@ -49,6 +51,7 @@ public class tmpWifiFinishActivity extends AppCompatActivity {
 
         if(role.equals(SERVER)) {
             updateScores();
+            getMyStatus();
             Thread serverThread = new Thread(new SocketServerThread());
             serverThread.start();
         } else if(role.equals(CLIENT)) {
@@ -126,7 +129,14 @@ public class tmpWifiFinishActivity extends AppCompatActivity {
         }
         @Override
         protected void onPostExecute(Void aVoid) {
-            resultTv.setText(resultTv.getText() + response);
+            if(response.equals("Win")) {
+                statusTv.setTextColor(getResources().getColor(R.color.holo_green));
+            } else if(response.equals("Draw")) {
+                statusTv.setTextColor(getResources().getColor(R.color.holo_orange));
+            } else if(response.equals("Loss")) {
+                statusTv.setTextColor(getResources().getColor(R.color.holo_red));
+            }
+            statusTv.setText(resultTv.getText() + response);
         }
     }
 
@@ -142,5 +152,19 @@ public class tmpWifiFinishActivity extends AppCompatActivity {
                 resultTv.setText(sb.toString());
             }
         });
+    }
+
+    private void getMyStatus() {
+        GameControler.GameStatus status = gameControler.getResults();
+        if(status == GameControler.GameStatus.WIN) {
+            statusTv.setTextColor(getResources().getColor(R.color.holo_green));
+            statusTv.setText("Win");
+        } else if(status == GameControler.GameStatus.DRAW) {
+            statusTv.setTextColor(getResources().getColor(R.color.holo_orange));
+            statusTv.setText("Draw");
+        } else if(status == GameControler.GameStatus.LOSS) {
+            statusTv.setTextColor(getResources().getColor(R.color.holo_red));
+            statusTv.setText("Loss");
+        }
     }
 }

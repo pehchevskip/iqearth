@@ -34,7 +34,7 @@ public class ServerOrClientActivity extends AppCompatActivity {
         joinBtn.setOnClickListener(joinOnClickListener);
 
         nickname = getIntent().getStringExtra(NICKNAME);
-        welcomeTv.setText(String.format("Welcome %s!", nickname));
+        welcomeTv.setText(String.format("Hi %s!", nickname));
 
         registerReceiver(broadcastReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
     }

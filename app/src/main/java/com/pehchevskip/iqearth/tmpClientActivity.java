@@ -11,14 +11,11 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.pehchevskip.iqearth.ipAdressToHash.ipAdressHashCode;
-import com.pehchevskip.iqearth.model.Player;
+import com.pehchevskip.iqearth.ipAddressToHash.ipAddressHashCode;
 
-import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
@@ -33,12 +30,12 @@ public class tmpClientActivity extends AppCompatActivity {
     private static final String IPADDR = "ipaddr";
     private static final int SocketServerPORT = 8080;
 
-    TextView textResponse;
+//    TextView textResponse;
     EditText editTextAddress;
-    Button buttonConnect, buttonClear, buttonStart;
+    Button buttonConnect, buttonStart;
 
     String nickname;
-    ipAdressHashCode coder;
+    ipAddressHashCode coder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,29 +44,24 @@ public class tmpClientActivity extends AppCompatActivity {
 
         editTextAddress = findViewById(R.id.addressEt);
         buttonConnect = findViewById(R.id.connectBt);
-        buttonClear = findViewById(R.id.clearBt);
         buttonStart = findViewById(R.id.startBt);
-        textResponse = findViewById(R.id.responseTv);
+//        textResponse = findViewById(R.id.responseTv);
 
         nickname = getIntent().getStringExtra(NICKNAME);
-        coder=new ipAdressHashCode();
+        coder=new ipAddressHashCode();
         buttonConnect.setOnClickListener(buttonConnectOnClickListener);
-        buttonClear.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                textResponse.setText("");
-            }
-        });
         buttonStart.setOnClickListener(buttonStartOnClickListener);
     }
 
     View.OnClickListener buttonConnectOnClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
-            String tMsg = nickname;
-            String ip = coder.decode(editTextAddress.getText().toString());
-            MyClientTask myClientTask = new MyClientTask(ip, SocketServerPORT, tMsg);
-            myClientTask.execute();
+            if(!editTextAddress.getText().toString().trim().equals("")){
+                String tMsg = nickname;
+                String ip = coder.decode(editTextAddress.getText().toString());
+                MyClientTask myClientTask = new MyClientTask(ip, SocketServerPORT, tMsg);
+                myClientTask.execute();
+            }
         }
     };
 
@@ -112,42 +104,24 @@ public class tmpClientActivity extends AppCompatActivity {
                 response = dataInputStream.readUTF();
             } catch (UnknownHostException e) {
                 e.printStackTrace();
-                response = "UnknownHostException" + e.toString();
+                runOnUiThread(new Runnable() { @Override public void run() { Toast.makeText(tmpClientActivity.this, "Error with connecting to the host!", Toast.LENGTH_SHORT).show(); } });
+                response = "error";
             } catch (IOException e) {
                 e.printStackTrace();
                 response = "IOException" + e.toString();
             } finally {
-                if(socket != null) {
-                    try {
-                        socket.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-                if(dataInputStream != null) {
-                    try {
-                        dataInputStream.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-                if(dataOutputStream != null) {
-                    try {
-                        dataOutputStream.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
+                if(socket != null) { try { socket.close(); } catch (IOException e) { e.printStackTrace(); } }
+                if(dataInputStream != null) { try { dataInputStream.close(); } catch (IOException e) { e.printStackTrace(); } }
+                if(dataOutputStream != null) { try { dataOutputStream.close(); } catch (IOException e) { e.printStackTrace(); } }
             }
             return null;
         }
 
         @Override
         protected void onPostExecute(Void aVoid) {
-            if(!msgToServer.equals(ISSTARTED)){
-                textResponse.setText(response);
+            if(!msgToServer.equals(ISSTARTED) && !response.equals("error")){
                 buttonStart.setEnabled(true);
-                super.onPostExecute(aVoid);
+                Toast.makeText(tmpClientActivity.this, response, Toast.LENGTH_SHORT).show();
             } else {
                 if(response.equals(STARTED)) {
                     Toast.makeText(tmpClientActivity.this, "Server started!", Toast.LENGTH_SHORT).show();

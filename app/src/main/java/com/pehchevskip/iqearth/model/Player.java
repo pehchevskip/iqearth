@@ -2,8 +2,8 @@ package com.pehchevskip.iqearth.model;
 
 import com.pehchevskip.iqearth.controlers.GameControler;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -16,7 +16,7 @@ public class Player {
 
     private String nickname;
     private int score;
-    private Map<String, Set<String>> answers;
+    private Map<String, List<String>> answers;
     private GameControler.GameStatus gameStatus;
     private String ipAddress;
 
@@ -28,9 +28,10 @@ public class Player {
         this.nickname = nickname;
         this.score = 0;
         this.answers = new HashMap<>();
-        this.answers.put("countries", new HashSet<String>());
-        this.answers.put("animals", new HashSet<String>());
-        this.answers.put("mountains", new HashSet<String>());
+        this.answers.put("countries", new ArrayList<String>());
+        this.answers.put("animals", new ArrayList<String>());
+        this.answers.put("mountains", new ArrayList<String>());
+        this.answers.put("cities", new ArrayList<String>());
     }
     public void setGameStatus(GameControler.GameStatus gameStatus){
         this.gameStatus=gameStatus;
@@ -54,15 +55,15 @@ public class Player {
         this.score += score;
     }
 
-    public void setAnswers(Map<String, Set<String>> answers) {
+    public void setAnswers(Map<String, List<String>> answers) {
         this.answers = answers;
     }
 
-    public Map<String, Set<String>> getAnswers() {
+    public Map<String, List<String>> getAnswers() {
         return answers;
     }
 
-    public Set<String> getAnswers(String key) {
+    public List<String> getAnswers(String key) {
         return answers.get(key);
     }
 

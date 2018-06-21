@@ -95,8 +95,6 @@ public class tmpActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tmp);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-//        setSupportActionBar(toolbar);
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
@@ -390,7 +388,7 @@ public class tmpActivity extends AppCompatActivity {
             return rootView;
         }
 
-        private void updateTextView(Set<String> answers, TextView textView) {
+        private void updateTextView(List<String> answers, TextView textView) {
             StringBuilder sb = new StringBuilder();
             for(String answer : answers)
                 sb.append(answer + ", ");
